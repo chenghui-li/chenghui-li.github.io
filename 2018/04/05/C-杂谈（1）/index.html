@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="C++,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="变量的声明与定义 指针域引用 new与malloc 结构体与联合 初始化与赋值">
+<meta name="keywords" content="C++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++杂谈">
+<meta property="og:url" content="www.chenghuili.cn/2018/04/05/C-杂谈（1）/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="变量的声明与定义 指针域引用 new与malloc 结构体与联合 初始化与赋值">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/09c9d286f80ba27486401d2749a983f0e8440502/C%2B%2B/%E8%81%94%E5%90%88.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/266767a8da0d1ff8fbb8270bc351b70c24248e22/C%2B%2B/%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B01.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/266767a8da0d1ff8fbb8270bc351b70c24248e22/C%2B%2B/%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B02.png">
+<meta property="og:updated_time" content="2019-06-27T07:48:51.134Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++杂谈">
+<meta name="twitter:description" content="变量的声明与定义 指针域引用 new与malloc 结构体与联合 初始化与赋值">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/09c9d286f80ba27486401d2749a983f0e8440502/C%2B%2B/%E8%81%94%E5%90%88.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/04/05/C-杂谈（1）/">
+
+
+
+
+
+  <title>C++杂谈 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/04/05/C-杂谈（1）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">C++杂谈</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-05T21:34:37+08:00">
+                2018-04-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/语言/" itemprop="url" rel="index">
+                    <span itemprop="name">语言</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/04/05/C-杂谈（1）/" class="leancloud_visitors" data-flag-title="C++杂谈">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ol>
+<li>变量的声明与定义</li>
+<li>指针域引用</li>
+<li>new与malloc</li>
+<li>结构体与联合</li>
+<li>初始化与赋值<a id="more"></a>
+</li>
+</ol>
+<h1 id="变量的声明与定义"><a href="#变量的声明与定义" class="headerlink" title="变量的声明与定义"></a>变量的声明与定义</h1><blockquote>
+<p>变量与对象其实只是叫法不同，一般可以交换使用。下面均以对象称之。</p>
+</blockquote>
+<p>对象是指一块能存储数据并具有某种类型的内存空间。对象的定义的基本格式是：类型说明符，随后紧跟由一个或多个对象名组成的列表，其中对象名以逗号分隔，每个对象的类型都由类型说明符指定，定义时还可以为对象赋初值。<br>简单的说，<strong>定义负责申请一块内存空间以存放对象，申请的大小取决于定义的类型，其中存放的数据可以定义时进行指定，也可以不指定，如果不指定则根据对象的定义位置进行初始化与否</strong>。（局部对象不默认初始化，全局对象和静态对象会默认初始化）</p>
+<p>声明与定义有类似的地方，也有不同的地方。声明的任务主要是<strong>使得对象的名字为程序所知</strong>。它也有做和定义相同的事情：<strong>规定了对象的类型和名字</strong>，此外定义还负责申请内存空间，也可能会为对象赋一个初值。<br>如果想声明一个对象而不是定义它，就在变量名前面加上关键字<strong>extern</strong>，而且不要显式的初始化变量（如果赋一个初始值，则抵消了extern的作用）：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="keyword">int</span> i;    <span class="comment">//声明而不是定义i</span></span><br><span class="line"><span class="keyword">int</span> j;    <span class="comment">//声明并定义j</span></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">int</span> k = <span class="number">0</span>;   <span class="comment">//定义k而非声明</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>对象只可以定义一次，但是可以多次声明</strong>。这也很好理解，在不同的文件中告诉其这个对象的名字可以使用；定义只分配了一块内存空间，如果多次定义则是定义了不同的对象（作用域不同），也有可能报错（同一个作用域）。比如在多个文件中使用同一个对象，则必须把对象的声明与定义分离，此时变量的定义必须出现并且这能出现在一个文件中，而其他用到改变对象的文件必须对其进行声明，决不能重复定义。</p>
+<h1 id="指针与引用"><a href="#指针与引用" class="headerlink" title="指针与引用"></a>指针与引用</h1><h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><p>引用不是对象（不占空间），它只是为对象起了另外一个名字，引用名（在编译器看来）其实就是对象名，它们是同一个东西，定义了一个引用后，对其进行的所有操作都是在与之绑定的对象上进行的。在初始化对象时，初始值会被拷贝到新建的对象中。但是在定义引用时，程序把对象和它的引用绑定在一起，而不是将对象的初始值拷贝给引用。一旦初始化完成，引用将和其对象一直绑定在一起，不允许再绑定到其他对象上。也因为这个原因，引用必须进行初始化。</p>
+<p><strong>因为引用不是一个对象，所以不能定义引用的引用。</strong></p>
+<h2 id="指针"><a href="#指针" class="headerlink" title="指针"></a>指针</h2><p>指针是指向另外一种类型的复合类型，和引用一样它实现了对其他对象的间接访问。<br>指针存放的是某个对象的地址，可以通过取地址符&amp;来获取对象的地址。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> ival = <span class="number">42</span>;</span><br><span class="line"><span class="keyword">int</span> *p = &amp;ival;    <span class="comment">//定义了一个指针变量p，它的空间所存放的是ival对象的地址</span></span><br></pre></td></tr></table></figure></p>
+<p>指针的值可以是下列四种状态之一：</p>
+<ol>
+<li>指向一个对象。</li>
+<li>指向一个对象的下一个位置。</li>
+<li>空指针，意味着指针没指向任何对象。</li>
+<li>无效指针，上述情况之外的其他值。</li>
+</ol>
+<p>对指针对象进行解引用，获得的就是其指向的对象，所以对指针解引用后的操作就是对对象的操作：<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*p = <span class="number">0</span>;    <span class="comment">//ival的值变为0</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>C++11标准下，空指针最好使用nullptr而避免使用NULL</strong></p>
+<h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><ul>
+<li>引用必须初始化，其初始化值必须是一个对象。指针可以不初始化。</li>
+<li>引用一旦初始化，中途不允许改变。指针空间中存放的是指向的对象的地址，可以给指针赋一个新的地址，从而可以指向一个新的对象（不讨论const限制）。</li>
+<li>引用不是一个对象，不可以取其地址。指针是一个实实在在存在的实体，有内存空间和地址。</li>
+<li>引用是其绑定对象的别名，它们是一个东西。指针是另外一块空间，其存储的是它指向对象的地址，可以解引用间接访问，它们实质是不同的。</li>
+</ul>
+<h1 id="new-与malloc"><a href="#new-与malloc" class="headerlink" title="new 与malloc"></a>new 与malloc</h1><blockquote>
+<p> 内存申请的位置</p>
+</blockquote>
+<p>new与malloc都可以动态的分配内存，但是malloc都是在堆上分配内存，（堆是操作系统为进程划分的一块特殊的区域，位于未初始化数据段的上方。）new在自由存储区上分配内存（自由存储区是一种抽象的概念，只要是new分配的内存，都称为位于自由存储区）。这两者有什么区别呢？自由存储区可以是堆，也可以是静态存储区，这取决于operator new的具体实现。</p>
+<blockquote>
+<p>返回类型安全性</p>
+</blockquote>
+<p>new操作符内存分配成功时，返回的是对象类型的指针，类型与对象严格匹配，无法进行类型转换。所以说new是类型安全的操作符。<br>malloc返回类型是void*，需要通过强制类型转换为想要的类型。</p>
+<blockquote>
+<p>内存分配失败时的返回值</p>
+</blockquote>
+<p>当没有足够的空间或者分配中途被信号打断时，都会导致分配失败。malloc分配失败时会返回NULL指针；new分配失败时会抛出bad_alloc异常，而不是返回NULL。如果不想抛出异常，可以指定no throw：<code>new (nothrow) classname</code></p>
+<blockquote>
+<p>是否需要指定内存大小</p>
+</blockquote>
+<p>使用new操作符不需要指定对象的内存大小，因为编译器会根据对象类型计算所需大小，而malloc则需要指定内存分配的大小<br><figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">class A<span class="meta">&#123;...&#125;</span>;</span><br><span class="line">A a1 = new(A);</span><br><span class="line">A a2 = (A*)malloc(sizeof(A));</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>是否会调用构造函数，释放调用析构函数？</p>
+</blockquote>
+<p>在定义内置类型对象时，new与malloc是没有区别的。但是在定义自定义类型的对象时就有所不同了。<br>使用malloc只会分配一块内存，不会进行初始化操作，自然也就不会调用类的构造函数。使用free释放时也只是进行该内存区域的释放，不会调用析构函数进行进一步的释放。如果类对象有另外新分配的内存，使用free将不会释放这块区域，导致内存泄漏。<br>使用new则不同，它会执行三个步骤：</p>
+<ol>
+<li>分配一块原始的，未命名的内存以供对象使用。</li>
+<li>调用类的构造函数将该内存区域初始化。</li>
+<li>将分配好的内存区域的地址返回。</li>
+</ol>
+<p>使用delete时执行两个步骤：</p>
+<ol>
+<li>调用对象析构函数。</li>
+<li>对该内存空间进行释放。</li>
+</ol>
+<blockquote>
+<p>是否可以相互调用</p>
+</blockquote>
+<p>operator new是基于malloc实现的，但是malloc不可以调用new</p>
+<blockquote>
+<p>直观的内存扩充</p>
+</blockquote>
+<p>使用malloc过程中，如果发现内存不足，则调用realloc来重新分配内存实现内存的扩充，realloc会首先判断此时指针所指位置是否还有足够的连续空间，如果有，原地扩大可分配内存空间。返回原来内存的地址；如果没有，则按照指定大小重新分配一块内存空间，将旧空间内的数据依次拷贝到新分配的空间，释放旧空间，返回新内存地址。</p>
+<p>new则没有这么直观的内存扩充。</p>
+<h1 id="结构体与联合"><a href="#结构体与联合" class="headerlink" title="结构体与联合"></a>结构体与联合</h1><p>结构体就是把一些数据项组合在一起的数据结构，每个成员依次存储。联合是所有的成员都从0偏移地址开始存储，每个成员都重叠在一起，也就是说，在某一时刻，只有一个成员真正存储在该地址中。它可以把同一个数据解释成不同的东西。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/09c9d286f80ba27486401d2749a983f0e8440502/C%2B%2B/%E8%81%94%E5%90%88.png" alt><br>联合一般用来节省空间，因为有些数据项是不可能同时出现的，此时如果用结构体存储显得颇为浪费。</p>
+<h1 id="初始化与赋值"><a href="#初始化与赋值" class="headerlink" title="初始化与赋值"></a>初始化与赋值</h1><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class A&#123;...&#125;<span class="comment">;</span></span><br><span class="line">A <span class="built_in">a1</span><span class="comment">;    //1</span></span><br><span class="line">A <span class="built_in">a2</span> = <span class="built_in">a1</span><span class="comment">;    //2</span></span><br><span class="line">A <span class="built_in">a3</span><span class="comment">;    //3</span></span><br><span class="line"><span class="built_in">a3</span> = <span class="built_in">a1</span><span class="comment">;    //4</span></span><br></pre></td></tr></table></figure>
+<p>从这个典型的例子入手：</p>
+<ol>
+<li>a1即新创建的一个对象，其初始值由默认构造函数进行指定。</li>
+<li>创建a2对象时有所不同，它的初始值由a1拷贝而来。此时调用的是拷贝构造函数，虽然用到了等号。</li>
+<li>创建a3，由构造函数负责初始化。</li>
+<li>将a1的值赋值给a3。此时调用的是拷贝构造函数。</li>
+</ol>
+<p>还有一个例子就是使用构造函数的初始化列表和不使用初始化列表：<br><figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">class A&#123;</span><br><span class="line">public:</span><br><span class="line">    A(int <span class="variable">_a</span>,int <span class="variable">_b</span>,char <span class="variable">_c</span>):a(<span class="variable">_a</span>),b(<span class="variable">_b</span>),c(<span class="variable">_c</span>)&#123; &#125;    <span class="comment">//1</span></span><br><span class="line">    A(int <span class="variable">_a</span>,int <span class="variable">_b</span> ,char <span class="variable">_c</span>)&#123;    <span class="comment">//2</span></span><br><span class="line">        a = <span class="variable">_a</span>;</span><br><span class="line">        b = <span class="variable">_b</span>;</span><br><span class="line">        c = <span class="variable">_c</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="built_in">private</span>:</span><br><span class="line">    int a,b;</span><br><span class="line">    char c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这两个效果相同，但是效率还有有差别的。实际上，在调用构造函数时，首先会执行对象的初始化，然后才会进入函数体。在上述两个构造函数中：</p>
+<ol>
+<li>使用初始化列表，调用1时对象成员还没有初始化，先执行初始化列表进行初始化，然后进入函数体，此时函数体为空，即不进行任何操作。</li>
+<li>没有使用初始化列表，调用2时，首先执行对象成员的默认初始化，即给赋一个初始值，然后执行函数体内的赋值，这样来看，刚才的初始化就没有任何意义。效率显然不如1高。</li>
+</ol>
+<p>看下验证结果：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/266767a8da0d1ff8fbb8270bc351b70c24248e22/C%2B%2B/%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B01.png" alt><br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/266767a8da0d1ff8fbb8270bc351b70c24248e22/C%2B%2B/%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B02.png" alt></p>
+<p>简单的说：<strong>初始化发生在对象还没有初始值时给其赋一个初始值，不管有没有用到等号，只要对象是从无到有，就是初始化。赋值就是对象有初始值了，重新给赋了一个新的值。即原来就有，只是改了一个值</strong></p>
+<hr>
+<p>参考资料：<br>《C++primer》<br>《C专家编程》<br> <a href="http://www.cnblogs.com/QG-whz/p/5140930.html" target="_blank" rel="noopener">细说new与malloc的10点区别</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/C/" rel="tag"># C++</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/02/深入分析epoll函数/" rel="next" title="深入分析epoll函数">
+                <i class="fa fa-chevron-left"></i> 深入分析epoll函数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/06/TCP协议中TIMEWAIT状态的分析/" rel="prev" title="TCP协议中TIMEWAIT状态的分析">
+                TCP协议中TIMEWAIT状态的分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#变量的声明与定义"><span class="nav-number">1.</span> <span class="nav-text">变量的声明与定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#指针与引用"><span class="nav-number">2.</span> <span class="nav-text">指针与引用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引用"><span class="nav-number">2.1.</span> <span class="nav-text">引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指针"><span class="nav-number">2.2.</span> <span class="nav-text">指针</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#区别"><span class="nav-number">2.3.</span> <span class="nav-text">区别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#new-与malloc"><span class="nav-number">3.</span> <span class="nav-text">new 与malloc</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结构体与联合"><span class="nav-number">4.</span> <span class="nav-text">结构体与联合</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化与赋值"><span class="nav-number">5.</span> <span class="nav-text">初始化与赋值</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

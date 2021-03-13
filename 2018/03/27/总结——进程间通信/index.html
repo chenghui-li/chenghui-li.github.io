@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="进程间通信,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述每个进程都有自己的虚拟地址空间，这既是优点又是缺点，优点在于，一个进程修改自己内存的内容不会影响其他进程。缺点在于有时需要进程间互相通信，不如线程那样便利。这就涉及到一些经典的进程IPC设计：管道、FIFO、消息队列、信号量、共享内存、套接字。">
+<meta name="keywords" content="进程间通信">
+<meta property="og:type" content="article">
+<meta property="og:title" content="总结——进程间通信">
+<meta property="og:url" content="www.chenghuili.cn/2018/03/27/总结——进程间通信/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="概述每个进程都有自己的虚拟地址空间，这既是优点又是缺点，优点在于，一个进程修改自己内存的内容不会影响其他进程。缺点在于有时需要进程间互相通信，不如线程那样便利。这就涉及到一些经典的进程IPC设计：管道、FIFO、消息队列、信号量、共享内存、套接字。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/d6ba09af92f5b52d03d49c5fdbf5f6257bc4127d/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E7%AE%A1%E9%81%931.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/d6ba09af92f5b52d03d49c5fdbf5f6257bc4127d/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E7%AE%A1%E9%81%932.png">
+<meta property="og:updated_time" content="2019-12-27T13:18:44.060Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="总结——进程间通信">
+<meta name="twitter:description" content="概述每个进程都有自己的虚拟地址空间，这既是优点又是缺点，优点在于，一个进程修改自己内存的内容不会影响其他进程。缺点在于有时需要进程间互相通信，不如线程那样便利。这就涉及到一些经典的进程IPC设计：管道、FIFO、消息队列、信号量、共享内存、套接字。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/d6ba09af92f5b52d03d49c5fdbf5f6257bc4127d/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E7%AE%A1%E9%81%931.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/03/27/总结——进程间通信/">
+
+
+
+
+
+  <title>总结——进程间通信 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/03/27/总结——进程间通信/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">总结——进程间通信</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-27T09:37:04+08:00">
+                2018-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/03/27/总结——进程间通信/" class="leancloud_visitors" data-flag-title="总结——进程间通信">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>每个进程都有自己的虚拟地址空间，这既是优点又是缺点，优点在于，一个进程修改自己内存的内容不会影响其他进程。缺点在于有时需要进程间互相通信，不如线程那样便利。这就涉及到一些经典的进程IPC设计：管道、FIFO、消息队列、信号量、共享内存、套接字。<br><a id="more"></a></p>
+<h1 id="匿名管道"><a href="#匿名管道" class="headerlink" title="匿名管道"></a>匿名管道</h1><p>管道这个名词并不陌生，在linux命令中经常遇到，比如：ls -l | grep string，此时系统创建了一个子进程，创建一个管道联系父子进程，父进程运行ls -l，将其输出放入管道，子进程的输入从管道中读取，子进程对输入执行grep string，然后输出，最后的结果就是：在当前目录下寻找文件名含有string的文件并打印到屏幕上。</p>
+<p><em>管道是通过pipe函数创建的：</em></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">pipe</span><span class="params">(<span class="keyword">int</span> fd[<span class="number">2</span>])</span></span>;</span><br><span class="line"><span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure>
+<p>经由参数fd返回两个文件描述符：通过fd[0]从管道中读数据，fd[1]向管道中写数据。fd[1]的输出是fd[0]的输入。<br>通常进程会先调用pipe创建一个管道，然后调用fork创建父进程到子进程的IPC通道。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/d6ba09af92f5b52d03d49c5fdbf5f6257bc4127d/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E7%AE%A1%E9%81%931.png" alt><br>fork之后做什么取决于想要的数据流方向。如果希望父进程传数据给子进程，那么就关闭父进程的fd[0]，关闭子进程的fd[1]。反之亦然。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/d6ba09af92f5b52d03d49c5fdbf5f6257bc4127d/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E7%AE%A1%E9%81%932.png" alt><br><strong>当管道的一端被关闭时，需要注意两点</strong>：</p>
+<ol>
+<li>当读一个写端被关闭的管道时，在所有数据都被读取后，read返回0，表示文件结束（如果管道的写端还有进程， 则不会产生文件结束）。</li>
+<li>如果写一个读端被关闭的管道，则产生SIGPIPE信号。如果忽略该信号或者捕捉该信号并从其处理程序返回，则write返回-1，errno设置为EPIPE。</li>
+</ol>
+<p>在写管道时，常量PIPE_BUF规定了内核的管道缓冲区的大小。如果对管道调用write，并且要求写的字节数小于PIPE_BUF，则不会发生与其他进程对同一管道的write操作交叉进行的情况。<br>当写数据的管道没有关闭，而又没有数据可读时，read调用通常会阻塞，但是当写数据的管道关闭时，read调用将会返回0而不是阻塞。</p>
+<blockquote>
+<p>管道的两个缺陷：</p>
+<ol>
+<li>管道只能在具有公共祖先的两个进程间使用。也就是说使用管道通信的进程之间必须存在某种父子关系</li>
+<li>历史上，它们是半双工的（即数据只能在一个方向上流动），现在有的系统提供全双工管道，但是为了可移植性，不应该预先假设支持全双工管道。 </li>
+</ol>
+</blockquote>
+<h1 id="命名管道"><a href="#命名管道" class="headerlink" title="命名管道"></a>命名管道</h1><p>命名管道即FIFO，匿名管道只能在两个相关的进程之间使用，但是命名管道就打破了这一局限性，它可以在任意两个不相关进程间使用。<br>命名管道实质上是一种文件类型。使用ls -l命令，其第一位表示为p，代表是一个管道文件。创建命名管道类似于创建文件。</p>
+<p><em>使用mkfifo可以创建一个命名管道：</em><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#incldue<span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">mkfifo</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *path,<span class="keyword">mode_t</span> mode)</span></span>;</span><br><span class="line"><span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>mode参数的规格说明与open函数中的mode相同。<br>当用mkfifo创建FIFO时，要用open来打开它。当open一个FIFO时，非阻塞标志（O_NONBLOCK）会产生以下影响：</p>
+<ol>
+<li>在没有指定O_NONBLOCK的情况下，只读open要阻塞到某个其他进程为写而打开这个FIFO为止。类似的，只写open也要阻塞到某个其他进程为只读而打开它为止。</li>
+<li>如果指定了O_NONBLOCK，则只读open立即返回。但是如果没有进程为读而打开一个FIFO，那么只写opne将返回-1，并将errno设置为ENXIO。<br>类似于匿名管道，若write一个尚无进程为读而打开的FIFO，则产生SIGPIPE信号。若某个FIFO的最后一个写进程关闭了FIFO，则将为该FIFO的读进程产生一个文件结束标志。<br>为一个FIFO有多个写进程是比较常见的，所以为了防止多个进程写的数据交叉，必须保证写的数据大小小于PIPE_BUF</li>
+</ol>
+<h1 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h1><p>消息队列提供了一种从一个进程向另一个进程发送一个数据块的方法。  每个数据块都被认为含有一个类型，接收进程可以独立地接收含有不同类型的数据结构。可以通过发送消息来避免命名管道的同步和阻塞问题。但是消息队列与命名管道一样，每个数据块都有一个最大长度的限制。<br>消息队列是消息的链接表，存储在内核中，由消息队列标识符标识。<br>msgget用于创建一个新队列或打开一个现有的队列。msgsnd将新消息添加到队列尾端。每个消息包含一个正的长整型类型的字段、一个非负的长度以及实际数据字节数（对应于长度），所有这些都在将消息添加到队列时，传送给msgsnd。msgrcv用于从队列中取消息。并不一定是按照先进先出序列来取消息，也可以按照消息的类型字段来取消息。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/msg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">msgget</span><span class="params">(<span class="keyword">key_t</span> key,<span class="keyword">int</span> flag)</span></span>;</span><br><span class="line"><span class="comment">//成功返回消息队列ID（标识符），出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>在msgget函数中的key和flag参数。在创建新的IPC结构时，如果key是IPC_PRIVATE或者和当前某种类型的IPC结构无关，则需要指明flag的IPC_CREAT标志位。在引用一个现有的IPC对象时，key必须等于队列创建时指明的key的值，并且IPC_CREAT必须不被指明。<br><strong>标识符是IPC对象的内部名</strong>。为使多个合作进程能够在同一IPC上汇聚，需要提供一个外部命名方案。为此，每个IPC对象都与一个键相关联，将这个<strong>键作为该对象的外部名。</strong></p>
+<p><em>msgctl函数对队列执行多种操作：</em><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/msg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">msgctl</span><span class="params">(<span class="keyword">int</span> msqid,<span class="keyword">int</span> cmd,struct msqid_ds *buf)</span></span>;</span><br><span class="line"><span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>cmd是将要采取的动作，它可以取3个值，</p>
+<ul>
+<li>IPC_STAT：把msgid_ds结构中的数据设置为消息队列的当前关联值，即用消息队列的当前关联值覆盖msgid_ds的值。</li>
+<li>IPC_SET：如果进程有足够的权限，就把消息列队的当前关联值设置为msgid_ds结构中给出的值</li>
+<li>IPC_RMID：删除消息队列</li>
+</ul>
+<p><em>调用msgsnd将数据放到消息队列中：</em><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/msg.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">msgsnd</span><span class="params">(<span class="keyword">int</span> msqid,<span class="keyword">const</span> <span class="keyword">void</span> *ptr,<span class="keyword">size_t</span> nbytes,<span class="keyword">int</span> flag)</span></span>;</span><br><span class="line"><span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>正如前面所说，每个消息都由3部分组成：一个正的长整型的字段、一个非负的长度（nbytes）以及实际数据字节数（对应于长度）。消息总是放在队列尾端。<br>ptr参数指向一个长整型数，它包含了正的整型消息类型，其后紧随的是消息数据。<br>flag参数可以指定为IPC_NOWAIT。这类似于文件IO的非阻塞标志。若消息队列已满，则指定IPC_NOWAIT使得msgsnd立即出错返回EAGAIN。如果没有指定IPC_NOWAIT，则进程会一直阻塞到<br>①有空间可以容纳要发送的消息。<br>②从系统中删除了此队列。<br>③捕捉到一个信号，并从信号处理程序中返回。</p>
+<p>当msgsnd返回成功时，消息队列相关的msqid_ds结构会随之更新，表明调用的进程ID（msg_lspid）、调用的时间（msg_stime）、以及队列中新增的消息（msg_qnum）。</p>
+<p><em>msgrcv从队列中取用消息：</em><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/msg.h&gt;</span></span></span><br><span class="line"><span class="keyword">ssize_t</span> msgrcv(<span class="keyword">int</span> msqid,<span class="keyword">void</span> *ptr,<span class="keyword">size_t</span> nbytes,<span class="keyword">long</span> type,<span class="keyword">int</span> flag);</span><br><span class="line"><span class="comment">//成功返回消息数据部分的长度；出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>nbytes指定数据缓冲区的长度。若返回的消息长度大于nbytes，而且在flag中设置了MSG_NOERROR位，则该消息被截断，被截去部分丢弃。如果没有设置这一标志，而消息又太长，则出错返回E2BIG，消息仍留在队列中。<br>type == 0，返回队列中的第一个消息。<br>type&gt;0，返回队列中消息类型为type的第一个消息<br>type&lt;0，返回队列中消息类型值小于等于type绝对值的消息，如果这种消息有若干个，则取类型值最小的消息。<br>同样可以根据flag的IPC_NOWAIT可以决定是阻塞等待还是立即返回。</p>
+<p>调用成功时，该函数返回放到接收缓存区中的字节数，消息被复制到由ptr指向的用户分配的缓存区中，然后删除消息队列中的对应消息。</p>
+<p><strong>与命名管道相比，消息队列的优势在于</strong></p>
+<ol>
+<li>消息队列也可以独立于发送和接收进程而存在，从而消除了在同步命名管道的打开和关闭时可能产生的困难。</li>
+<li>同时通过发送消息还可以避免命名管道的同步和阻塞问题，不需要由进程自己来提供同步方法。</li>
+<li>接收程序可以通过消息类型有选择地接收数据，而不是像命名管道中那样，只能默认地接收。</li>
+</ol>
+<h1 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h1><p>为了防止出现因多个程序同时访问一个共享资源而引发的一系列问题，需要一种方法，它可以通过生成并使用令牌来授权，在任一时刻只能有一个执行线程访问代码的临界区域。临界区域是指执行数据更新的代码需要独占式地执行。而信号量就可以提供这样的一种访问机制，<strong>让一个临界区同一时间只有一个线程在访问它</strong>，也就是说信号量是用来调协进程对共享资源的访问的。</p>
+<p>信号量是一个特殊的变量，程序对其访问都是原子操作，且只允许对它进行等待（即P(信号变量))和发送（即V(信号变量))信息操作。最简单的信号量是只能取0和1的变量，这也是信号量最常见的一种形式，叫做二进制信号量。而可以取多个正整数的信号量被称为通用信号量。<br>信号量不同于以上三种IPC，它其实是一个计数器，用于为多个进程提供对共享的数据对象的访问。<br>为了获得共享资源，进程需要执行下列操作。</p>
+<ol>
+<li>测试控制该资源的信号量</li>
+<li>若此信号量的值为正，则进程可以使用该资源。在这种情况下，进程会将信号量的值减1，表示它使用了一个资源单位。</li>
+<li>否则，若此信号量的值为0，则进程进入休眠状态，直至信号量的值大于0。进程被唤醒后，它返回至步骤1。</li>
+</ol>
+<p>常用的信号量形式被称为二元信号量。它控制单个资源，其初始值为1。但是一般而言，信号量的初始值可以使用任意一个正值，该值表明有多少个共享资源单位可共享应用。</p>
+<h1 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h1><p>顾名思义，共享内存就是允许两个不相关的进程访问同一个逻辑内存。共享内存是在两个正在运行的进程之间共享和传递数据的一种非常有效的方式，因为数据不需要在客户进程和服务器进程之间进行赋值，所以这是最快的一种IPC。不同进程之间共享的内存通常安排为同一段物理内存。进程可以将同一段共享内存连接到它们自己的地址空间中，所有进程都可以访问共享内存中的地址，就好像它们是由用C语言函数malloc分配的内存一样。而如果某个进程向共享内存写入数据，所做的改动将立即影响到可以访问同一段共享内存的任何其他进程。</p>
+<p>特别地：共享内存并未提供同步机制，也就是说，在第一个进程结束对共享内存的写操作之前，并无自动机制可以阻止第二个进程开始对它进行读取。所以通常需要用其他的机制来同步对共享内存的访问，比较常用的是使用互斥量。<br><em>调用shmget函数可以创建一个共享内存：</em><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">shmget</span><span class="params">(<span class="keyword">key_t</span> key,<span class="keyword">size_t</span> size,<span class="keyword">int</span> flag)</span></span>;</span><br><span class="line"><span class="comment">//成功返回共享内存标识符，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>size是共享内存的长度，以字节为单位。实现上通常将其向上取整为页长的整数倍，若指定的size不是页长的整数倍，则最后一页余下的部分将不能再使用。如果是创建一个新的共享内存，则必须指定size，如果是获取当前已有的共享内存，则size指定为0。当创建一个新的共享内存时，其内容被初始化为0。<br><em>调用shmat可以将共享内存连接到进程的地址中：</em></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">shmat</span><span class="params">(<span class="keyword">int</span> shmid,<span class="keyword">const</span> <span class="keyword">void</span> *addr,<span class="keyword">int</span> flag)</span></span>;</span><br><span class="line"><span class="comment">//成功返回指向共享内存的指针，出错返回-1</span></span><br></pre></td></tr></table></figure>
+<p>addr为0表示连接到第一个可用地址上。<br><em>调用shmdt可以删除一个共享内存：</em><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#incldue<span class="meta-string">&lt;sys/shm.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">shmdt</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *addr)</span></span>;</span><br><span class="line"><span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>addr参数是调用shmat的返回值。如果成功，shmdt将使相关shmid_ds结构中的shm_nattch计数器值减1。</p>
+<hr>
+<p>参考资料：<br>《UNIX环境高级编程 3th》（APUE）<br><a href="https://blog.csdn.net/ljianhui/article/details/10168031" target="_blank" rel="noopener">匿名管道</a><br><a href="https://blog.csdn.net/ljianhui/article/details/10202699" target="_blank" rel="noopener">命名管道</a><br><a href="https://blog.csdn.net/ljianhui/article/details/10287879" target="_blank" rel="noopener">消息队列</a><br><a href="https://blog.csdn.net/ljianhui/article/details/10243617" target="_blank" rel="noopener">信号量</a><br><a href="https://blog.csdn.net/ljianhui/article/details/10253345" target="_blank" rel="noopener">共享内存</a><br><a href="https://www.ibm.com/developerworks/cn/linux/l-ipc/part5/index1.html" target="_blank" rel="noopener">共享内存 IBM</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/进程间通信/" rel="tag"># 进程间通信</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/23/TCP-UDP详解/" rel="next" title="TCP&UDP详解">
+                <i class="fa fa-chevron-left"></i> TCP&UDP详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/30/同步IO与异步IO/" rel="prev" title="同步IO与异步IO">
+                同步IO与异步IO <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#匿名管道"><span class="nav-number">2.</span> <span class="nav-text">匿名管道</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#命名管道"><span class="nav-number">3.</span> <span class="nav-text">命名管道</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#消息队列"><span class="nav-number">4.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#信号量"><span class="nav-number">5.</span> <span class="nav-text">信号量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#共享内存"><span class="nav-number">6.</span> <span class="nav-text">共享内存</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

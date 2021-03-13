@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="内联函数,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述在C语言中，我们使用宏定义函数这种借助编译器的优化技术来减少程序的执行时间，那么在C++中有没有相同的技术或者更好的实现方法呢？答案是有的，那就是内联函数。内联函数作为编译器优化手段的一种技术，在降低运行时间上非常有用。">
+<meta name="keywords" content="内联函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++杂谈——inline">
+<meta property="og:url" content="www.chenghuili.cn/2018/04/11/C-杂谈——inline函数/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="概述在C语言中，我们使用宏定义函数这种借助编译器的优化技术来减少程序的执行时间，那么在C++中有没有相同的技术或者更好的实现方法呢？答案是有的，那就是内联函数。内联函数作为编译器优化手段的一种技术，在降低运行时间上非常有用。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/5403d1273a6070bc95d7708cac01eb1374a0ede2/C%2B%2B/%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0.jpg">
+<meta property="og:updated_time" content="2019-06-27T07:48:32.910Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++杂谈——inline">
+<meta name="twitter:description" content="概述在C语言中，我们使用宏定义函数这种借助编译器的优化技术来减少程序的执行时间，那么在C++中有没有相同的技术或者更好的实现方法呢？答案是有的，那就是内联函数。内联函数作为编译器优化手段的一种技术，在降低运行时间上非常有用。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/5403d1273a6070bc95d7708cac01eb1374a0ede2/C%2B%2B/%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/04/11/C-杂谈——inline函数/">
+
+
+
+
+
+  <title>C++杂谈——inline | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/04/11/C-杂谈——inline函数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">C++杂谈——inline</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-11T15:06:26+08:00">
+                2018-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/语言/" itemprop="url" rel="index">
+                    <span itemprop="name">语言</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/04/11/C-杂谈——inline函数/" class="leancloud_visitors" data-flag-title="C++杂谈——inline">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>在C语言中，我们使用宏定义函数这种借助编译器的优化技术来减少程序的执行时间，那么在C++中有没有相同的技术或者更好的实现方法呢？答案是有的，那就是内联函数。内联函数作为编译器优化手段的一种技术，在降低运行时间上非常有用。<br><a id="more"></a></p>
+<h1 id="什么是内联函数"><a href="#什么是内联函数" class="headerlink" title="什么是内联函数"></a>什么是内联函数</h1><p>内联函数是C++的增强特性之一，用来降低程序的运行时间。当内联函数收到编译器的指示时，即可发生内联：编译器将使用函数的定义体来替代函数调用语句，<strong>这种替代行为发生在编译阶段而非程序运行阶段。</strong></p>
+<p>值得注意的是，内联函数仅仅是对编译器的内联建议，编译器是否觉得采取你的建议取决于函数是否符合内联的有利条件。如果函数体非常大，那么编译器将忽略函数的内联声明，而将内联函数作为普通函数处理。</p>
+<h1 id="为什么要使用内联函数"><a href="#为什么要使用内联函数" class="headerlink" title="为什么要使用内联函数"></a>为什么要使用内联函数</h1><p>对于发生一个普通的函数调用时会发生什么？</p>
+<ol>
+<li>保存当前程序执行状态。</li>
+<li>将调用函数的函数地址和参数，局部变量压栈。</li>
+<li>将调用函数加载到内存，此时涉及参数的拷贝和跳转到函数执行的内存位置。</li>
+<li>执行调用函数代码，存储函数返回值。</li>
+<li>获取之前函数的地址，返回到原来函数的执行位置，继续运行。</li>
+</ol>
+<p>可以看出发生函数的调用时，代价是很高的，这也正是内联函数的优势：<strong>通过inline声明，编译器首先在函数调用处使用函数体本身语句替换了函数调用语句，然后编译替换后的代码。因此，通过内联函数，编译器不需要跳转到内存其他地址去执行函数调用，也不需要保留函数调用时的现场数据。</strong></p>
+<p>比如说这个例子<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;    </span></span></span><br><span class="line"><span class="comment">//函数定义为inline即:内联函数    </span></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">char</span>* <span class="title">dbtest</span><span class="params">(<span class="keyword">int</span> a)</span>   </span></span><br><span class="line"><span class="function"></span>&#123;    </span><br><span class="line">    <span class="keyword">return</span> (i % <span class="number">2</span> &gt; <span class="number">0</span>) ? <span class="string">"奇"</span> : <span class="string">"偶"</span>;    </span><br><span class="line">&#125;     </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span>    </span></span><br><span class="line"><span class="function"></span>&#123;    </span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;    </span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">1</span>; i &lt; <span class="number">100</span>; i++)   </span><br><span class="line">    &#123;    </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"i:%d    奇偶性:%s /n"</span>, i, dbtest(i));        </span><br><span class="line">    &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果没有将dbtest声明为inline，则在程序运行时，将发生100次函数的压栈，出栈，拷贝，加载等调用工作（如果编译器没有进行优化），开销不容忽视。如果声明为inline，其实在内部的工作就是在每个for循环的内部任何调用dbtest(i)的地方都换成了(i%2&gt;0)?”奇”:”偶”，这样就避免了频繁调用函数对栈内存重复开辟所带来的消耗。</p>
+<p>inline 是一种“用于实现的关键字”，而不是一种“用于声明的关键字”，如果在函数的声明处加inline关键字，但是在函数定义时没有加，那么该函数仍然不是内联函数；不管在函数声明处有没有加inline关键字，只要在函数的定义出加inline，那么这个函数就是内联的。不过个人认为<strong>好的习惯应该是在声明和定义位置都加，因为程序不仅要让编译器看懂，还要让别的程序员看懂。</strong></p>
+<h1 id="内联函数的优缺点"><a href="#内联函数的优缺点" class="headerlink" title="内联函数的优缺点"></a>内联函数的优缺点</h1><p>既然内联函数可以提升程序的运行效率，那为什么不将所有的函数都定义为内联函数呢？<br>可以说内联函数的效率提升是以牺牲空间为代价的，典型的空间换时间策略。如果函数结构过于复杂，或者篇幅过长（google标准建议超过10行就算过长），那么这样的替换是得不偿失的（即使定义为inline，编译器也不会为之所动）。</p>
+<p>通过下面这些优缺点总结大概会更理解为什么要使用inline函数：</p>
+<p>优点：</p>
+<ol>
+<li>它通过避免函数调用所带来的开销来提高你程序的运行速度。</li>
+<li>当函数调用发生时，它节省了变量弹栈、压栈的开销。</li>
+<li>它避免了一个函数执行完返回原现场的开销。</li>
+<li>通过将函数声明为内联，你可以把函数定义放在头文件内。</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>因为代码的扩展，内联函数增大了可执行程序的体积。</li>
+<li>C++内联函数的展开是中编译阶段，这就意味着如果你的内联函数发生了改动，那么就需要重新编译代码。</li>
+<li>当你把内联函数放在头文件中时，它将会使你的头文件信息变多，不过头文件的使用者不用在意这些。</li>
+<li>有时候内联函数并不受到青睐，比如在嵌入式系统中，嵌入式系统的存储约束可能不允许体积很大的可执行程序。</li>
+</ol>
+<h1 id="宏与内联函数"><a href="#宏与内联函数" class="headerlink" title="宏与内联函数"></a>宏与内联函数</h1><p><em>宏和普通函数调用的区别</em>：</p>
+<ol>
+<li>宏只做简单的字符串替换，函数是参数传递，所以必然有参数类型检查(支持各种类型，而不是只有字符串)。</li>
+<li>宏不经计算而直接替换参数，函数调用则是将参数表达式求值再传递给形参。</li>
+<li>宏在编译前进行，即先替换再编译。而函数是编译后，在执行时才调用的。宏占编译时间，而函数占执行时间。</li>
+<li>宏参数不占空间，因为只做字符串替换，而函数调用时参数传递是变量之间的传递，形参作为局部变量占内存空间。</li>
+<li>函数调用需要保留现场，然后转入调用函数执行，执行完毕再返回主调函数，这些耗费在宏中是没有的。</li>
+</ol>
+<p><em>使用宏和内联函数都可以节省在函数调用方面的时间和空间开销。二者都是为了提高效率，但是却有着显著的区别：</em></p>
+<ol>
+<li>在使用时，宏只做简单的预处理器符号表(字符串)中的简单替换。而内联函数可以进行参数类型检查，且具有返回值(也能被强制转换为可转换的合适类型)。</li>
+<li>内联函数首先是函数，函数的许多性质都适用于内联函数(如内联函数可以重载)。</li>
+<li>内联函数可以作为某个类的成员函数，这样可以使用类的保护成员和私有成员。而当一个表达式涉及到类保护成员或私有成员时，宏就不能实现了(无法将this指针放在合适位置)。</li>
+</ol>
+<p>下面是《高质量C++代码》中的一段话：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/5403d1273a6070bc95d7708cac01eb1374a0ede2/C%2B%2B/%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0.jpg" alt></p>
+<hr>
+<p>参考资料：<br>《深度探索C++对象模型》<br><a href="https://blog.csdn.net/zqixiao_09/article/details/50877383" target="_blank" rel="noopener">内联函数 —— C 中关键字 inline 用法解析</a><br><a href="https://blog.csdn.net/BjarneCpp/article/details/76044493" target="_blank" rel="noopener">c++ 内联函数（一看就懂）</a><br><a href="http://www.cnblogs.com/QG-whz/p/4641479.html" target="_blank" rel="noopener">C++内联函数</a><br><a href="http://www.cppblog.com/liyuxia713/archive/2010/03/04/108897.html" target="_blank" rel="noopener">宏与内联(inline)的区别(转载)</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/内联函数/" rel="tag"># 内联函数</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/06/TCP协议中TIMEWAIT状态的分析/" rel="next" title="TCP协议中TIMEWAIT状态的分析">
+                <i class="fa fa-chevron-left"></i> TCP协议中TIMEWAIT状态的分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/14/Linux虚拟内存系统/" rel="prev" title="Linux虚拟内存系统">
+                Linux虚拟内存系统 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是内联函数"><span class="nav-number">2.</span> <span class="nav-text">什么是内联函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么要使用内联函数"><span class="nav-number">3.</span> <span class="nav-text">为什么要使用内联函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内联函数的优缺点"><span class="nav-number">4.</span> <span class="nav-text">内联函数的优缺点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#宏与内联函数"><span class="nav-number">5.</span> <span class="nav-text">宏与内联函数</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="I/O函数,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述C语言定义了一组高级输入输出函数，即标准I/O函数，是UNIX I/O的较高级别的替代。这个库提供了打开和关闭文件的含（fopen和fclose）、读和写字节的函数（fread和fwrite）、读和写字符串的函数（fgets和fputs）以及复杂的格式化IO函数（scanf和printf）。">
+<meta name="keywords" content="I&#x2F;O函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="总结——标准IO函数与UNIX IO函数">
+<meta property="og:url" content="www.chenghuili.cn/2018/03/17/总结——标准IO函数与UNIX-IO函数/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="概述C语言定义了一组高级输入输出函数，即标准I/O函数，是UNIX I/O的较高级别的替代。这个库提供了打开和关闭文件的含（fopen和fclose）、读和写字节的函数（fread和fwrite）、读和写字符串的函数（fgets和fputs）以及复杂的格式化IO函数（scanf和printf）。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/1795fe1ef19d5d1e0751406fea92f62302a16e65/amazing/5.png">
+<meta property="og:updated_time" content="2019-12-27T13:19:05.048Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="总结——标准IO函数与UNIX IO函数">
+<meta name="twitter:description" content="概述C语言定义了一组高级输入输出函数，即标准I/O函数，是UNIX I/O的较高级别的替代。这个库提供了打开和关闭文件的含（fopen和fclose）、读和写字节的函数（fread和fwrite）、读和写字符串的函数（fgets和fputs）以及复杂的格式化IO函数（scanf和printf）。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/1795fe1ef19d5d1e0751406fea92f62302a16e65/amazing/5.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/03/17/总结——标准IO函数与UNIX-IO函数/">
+
+
+
+
+
+  <title>总结——标准IO函数与UNIX IO函数 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/03/17/总结——标准IO函数与UNIX-IO函数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">总结——标准IO函数与UNIX IO函数</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-17T14:08:04+08:00">
+                2018-03-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/03/17/总结——标准IO函数与UNIX-IO函数/" class="leancloud_visitors" data-flag-title="总结——标准IO函数与UNIX IO函数">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>C语言定义了一组高级输入输出函数，即标准I/O函数，是UNIX I/O的较高级别的替代。这个库提供了打开和关闭文件的含（fopen和fclose）、读和写字节的函数（fread和fwrite）、读和写字符串的函数（fgets和fputs）以及复杂的格式化IO函数（scanf和printf）。<br><a id="more"></a><br>标准IO库将一个打开的文件模型化为一个流，一个流就是一个指向FILE类型的结构的指针。每个ANSI C程序开始时都有三个打开的流 <code>stdin,stdout,stderr</code>分别对应于标准输入、标准输出和标准错误。C系统在处理文件(文本文件和二进制文件)时，并不区分类型，都看成是字符流，按字节进行处理。当一个进程正常终止时（直接调用exit()，或从main返回）所有打开的标准I/O流都会被关闭，所有带未写缓冲数据的I/O流都会被冲洗。</p>
+<p>为什么要定义标准IO函数呢？原因之一在于UNIX I/O函数（open，write，read，close）的开销比较大，我们都知道它是直接与文件打交道的，也就是内存与磁盘的交互，肯定要比内存内缓冲区之间的交互要费时的多。标准I/O就基于UNIX I/O并且完美的解决了这一缺点。比如在使用getc函数，每次调用返回文件的下一个字符。当第一次调用getc时，库通过一次调用read函数将流缓冲区填充，然后缓冲区中的第一个字节返回给应用程序。只要缓冲区中还有未读的字节，接下来对getc的调用就能直接从流缓冲区得到服务。</p>
+<h1 id="标准I-O函数"><a href="#标准I-O函数" class="headerlink" title="标准I/O函数"></a>标准I/O函数</h1><h2 id="fopen"><a href="#fopen" class="headerlink" title="fopen"></a>fopen</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function">FILE * <span class="title">fopen</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> * path, <span class="keyword">const</span> <span class="keyword">char</span> * mode)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    以某种模式打开一个文件</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    path：路径名以及文件名</span></span><br><span class="line"><span class="comment">    mode：打开模式</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment">    文件顺利打开后，指向该流的文件指针就会被返回。</span></span><br><span class="line"><span class="comment">    如果文件打开失败则返回 NULL，并把错误代码存在errno中。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>mode有以下几种选项</p>
+<table>
+<thead>
+<tr>
+<th><strong>字符串</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r</td>
+<td>以只读方式打开文件，该文件必须存在。</td>
+</tr>
+<tr>
+<td>r+</td>
+<td>以读/写方式打开文件，该文件必须存在。</td>
+</tr>
+<tr>
+<td>rb+</td>
+<td>以读/写方式打开一个二进制文件，只允许读/写数据。</td>
+</tr>
+<tr>
+<td>rt+</td>
+<td>以读/写方式打开一个文本文件，允许读和写。</td>
+</tr>
+<tr>
+<td>w</td>
+<td>打开只写文件，若文件存在则长度清为 0，即该文件内容消失，若不存在则创建该文件。</td>
+</tr>
+<tr>
+<td>w+</td>
+<td>打开可读/写文件，若文件存在则文件长度清为零，即该文件内容会消失。若文件不存在则建立该文件。</td>
+</tr>
+<tr>
+<td>a</td>
+<td>以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，写入的数据会被加到文件尾，即文件原先的内容会被保留（<a href="https://baike.baidu.com/item/EOF" target="_blank" rel="noopener">EOF</a> 符保留）。</td>
+</tr>
+<tr>
+<td>a+</td>
+<td>以附加方式打开可读/写的文件。若文件不存在，则会建立该文件，如果文件存在，则写入的数据会被加到文件尾后，即文件原先的内容会被保留（原来的 EOF 符不保留）。</td>
+</tr>
+<tr>
+<td>wb</td>
+<td>以只写方式打开或新建一个二进制文件，只允许写数据。</td>
+</tr>
+<tr>
+<td>wb+</td>
+<td>以读/写方式打开或建立一个二进制文件，允许读和写。</td>
+</tr>
+<tr>
+<td>wt+</td>
+<td>以读/写方式打开或建立一个文本文件，允许读写。</td>
+</tr>
+<tr>
+<td>at+</td>
+<td>以读/写方式打开一个文本文件，允许读或在文本末追加数据。</td>
+</tr>
+<tr>
+<td>ab+</td>
+<td>以读/写方式打开一个二进制文件，允许读或在文件末追加数据。</td>
+</tr>
+</tbody>
+</table>
+<p>上述的形态字符串都可以再加一个 b 字符，如 rb、w+b 或 ab+ 等组合，加入 b 字符用来告诉函数库以<strong>二进制模式</strong>打开文件。如果不加 b，表示默认加了 t，即 rt、wt，其中 t 表示以<strong>文本模式</strong>打开文件。</p>
+<h2 id="freopen"><a href="#freopen" class="headerlink" title="freopen"></a>freopen</h2><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FILE</span> *freopen( <span class="keyword">const</span> <span class="keyword">char</span> *filename, <span class="keyword">const</span> <span class="keyword">char</span> *mode, <span class="keyword">FILE</span> *stream );</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    以指定模式将一个文件流重定向到另一个文件。</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    filename：需要重定向到的文件名或文件路径。</span></span><br><span class="line"><span class="comment">    mode：代表文件访问权限的字符串。例如，"r"表示“只读访问”、"w"表示“只写访问”、</span></span><br><span class="line"><span class="comment">"a"表示“追加写入”。</span></span><br><span class="line"><span class="comment">    stream：需要被重定向的文件流。</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment">    如果成功，则返回该指向该输出流的文件指针，否则返回为NULL。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>举个例子,将in.txt的内容使用重定向全部输出到out.txt中：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a, b;</span><br><span class="line">    freopen(<span class="string">"in.txt"</span>,<span class="string">"r"</span>,<span class="built_in">stdin</span>);</span><br><span class="line">    <span class="comment">/* 如果in.txt不在连接后的exe的目录，需要指定路径*/</span></span><br><span class="line">    freopen(<span class="string">"out.txt"</span>,<span class="string">"w"</span>,<span class="built_in">stdout</span>); <span class="comment">/*同上*/</span></span><br><span class="line">    <span class="keyword">while</span> (<span class="built_in">scanf</span>(<span class="string">"%d%d"</span>, &amp;a, &amp;b) != EOF)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%d\n"</span>,a+b);</span><br><span class="line">    fclose(<span class="built_in">stdin</span>);</span><br><span class="line">    fclose(<span class="built_in">stdout</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="getc-amp-fgetc"><a href="#getc-amp-fgetc" class="headerlink" title="getc &amp; fgetc"></a>getc &amp; fgetc</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getc</span><span class="params">(FILE *stream)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fgetc</span><span class="params">(FILE *stream)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    从文件流中读取一个字符。</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    stream：需要读取的文件流。</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment">    如果读取失败或者到了文件结束标志返回EOF(-1)，否则返回读到的字符。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>有没有注意到它返回一个int类型，而不用char，或者unsigned char，每次读取一个字节的内容，为什么要用一个四个字节的变量来存储呢。原因在于当读取异常或者读取到文件结尾时，会返回EOF（-1），所以unsigned char肯定不行，那么按理说char总行了吧。在计算机内部，所有的数据都是用补码来存储的，-1的补码是0xffffffff，当用char保存返回值时，如果读取到0xff（这也代表一个字符，但不是EOF），然后再和EOF比较时，一个字节的0xff会被转换为4字节的0xffffffff，判断为相等，提前退出。而当用4字节的int保存时，如果读到0xff，转换后也是0x000000ff，并不相等。</p>
+<p>用一个例子验证下：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/1795fe1ef19d5d1e0751406fea92f62302a16e65/amazing/5.png" alt><br>这两个函数的功能其实是一样一样的，区别在于一个是宏定义实现的，一个是函数定义实现的，fgetc的f就表示function的意思。基于这个原因，其实在使用时还有有一点区别的：</p>
+<ol>
+<li>getc的参数不应当是具有副作用的表达式。（宏定义的鸟性大家都懂）</li>
+<li>因为fgetc一定是一个函数，所以可以得到其地址。这就允许将fgetc的地址作为一个参数传送给另一个函数。</li>
+<li>调用fgetc所需时间很可能长于调用getc，因为调用函数通常所需的时间长于调用宏。（因为调用函数会涉及到压栈和出栈）</li>
+</ol>
+<h2 id="putc-amp-fputc"><a href="#putc-amp-fputc" class="headerlink" title="putc &amp; fputc"></a>putc &amp; fputc</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">putc</span><span class="params">(<span class="keyword">int</span> ch, FILE *fp)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fputc</span><span class="params">(<span class="keyword">int</span> ch,FILE*fp)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    将一个字符写入到指定的流的当前位置，成功后位置后移一位</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    ch：指定要写入的字符。</span></span><br><span class="line"><span class="comment">    fp：指定的流。</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment">    如果写入成功，返回写入的字符的ASCII码值，如果写入错误，返回EOF</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>返回类型的原因同上，put与fput的区别也同上。</p>
+<h2 id="getchar-amp-getch"><a href="#getchar-amp-getch" class="headerlink" title="getchar &amp; getch"></a>getchar &amp; getch</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getchar</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    从标准输入中读取一个字符</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>getchar的功能就像getc(stdin)，当键盘输入字符时，它们被存储在缓冲区中，当用户键入回车之后，getchar才开始从stdio流中每次读入一个字符。返回值是用户输入的字符的ASIC码，如出错返回-1，且将用户输入的字符回显到屏幕。为什么是int与上述原因相同。getch与getchar的不同之处在于，getch不带缓冲区，也就是说，不需要按下回车，每键入一个字符他就立马读取。</p>
+<h2 id="putchar"><a href="#putchar" class="headerlink" title="putchar"></a>putchar</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">putchar</span><span class="params">(<span class="keyword">int</span> ch)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    将指定的表达式的值所对应的字符输出到标准输出终端上。</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    ch可以是一个用单引号括起来的字符，</span></span><br><span class="line"><span class="comment">    也可以是一个0~127之间的整数，也可以是一个事先用char定义好的字符变量。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>功能就像<code>putc(ch,stdout);</code></p>
+<h2 id="gets-不会读取到回车"><a href="#gets-不会读取到回车" class="headerlink" title="gets (不会读取到回车)"></a>gets (不会读取到回车)</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">char</span> *<span class="title">gets</span> <span class="params">( <span class="keyword">char</span> *buffer)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    从stdio流中读取字符串，直至接受到换行符或EOF时停止，</span></span><br><span class="line"><span class="comment">    并将读取的结果存放在buffer指针所指向的字符数组中。</span></span><br><span class="line"><span class="comment">    换行符不作为读取串的内容，读取的换行符被转换为‘\0’空字符，并由此来结束字符串。</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    buffer：声明的一个用于存放输入的字符串的一个字符数组。</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment"> 读入成功，返回与参数buffer相同的指针；读入过程中遇到EOF或发生错误，返回NULL指针。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>注意：由于其可以无限读取，不会判断上限，不会检查是否溢出，所以buffer的大小异常关键，如果读取的字符串长度大于buffer的大小，会覆盖后面的内容，造成内存泄漏。</p>
+<h2 id="fgets-会读取到回车"><a href="#fgets-会读取到回车" class="headerlink" title="fgets (会读取到回车)"></a>fgets (会读取到回车)</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">char</span> *<span class="title">fgets</span><span class="params">(<span class="keyword">char</span> *buf, <span class="keyword">int</span> buffsize, FILE *stream)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    从stream流中最多读取buffsize-1个字符（有一个用来放'\0'），</span></span><br><span class="line"><span class="comment">    存放到buf字符数组中。或者说，每次要么读一行，要么读buffsize-1个字符，</span></span><br><span class="line"><span class="comment">    这取决于行长度</span></span><br><span class="line"><span class="comment">参数：</span></span><br><span class="line"><span class="comment">    *buf: 字符型指针，指向用来存储所得数据的地址。</span></span><br><span class="line"><span class="comment">    bufsize: 整型数据，指明存储数据的大小。</span></span><br><span class="line"><span class="comment">    *stream: 文件结构体指针，将要读取的文件流。</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment">    成功将返回buf指针，失败或读到文件结尾返回NULL。</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h2 id="puts"><a href="#puts" class="headerlink" title="puts"></a>puts</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">puts</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *<span class="built_in">string</span>)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    把字符串输出到标准输出设备，将'\0'转换为回车换行</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h2 id="fputs"><a href="#fputs" class="headerlink" title="fputs"></a>fputs</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fputs</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *str, FILE *stream)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">功能：</span></span><br><span class="line"><span class="comment">    把字符串str的内容写入到指定的流( stream) 中，但不包括空字符\0。</span></span><br><span class="line"><span class="comment">返回值：</span></span><br><span class="line"><span class="comment">    该函数返回一个非负值，如果发生错误则返回 EOF(-1)。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<hr>
+<p>参考资料：<br>《深入理解计算机系统 3th》（CSAPP）<br><a href="https://baike.baidu.com/item/fopen" target="_blank" rel="noopener">百度百科 fopen</a><br><a href="https://baike.baidu.com/item/freopen" target="_blank" rel="noopener">百度百科 freopen</a><br><a href="http://www.cplusplus.com/reference/cstdio/getc/" target="_blank" rel="noopener">C++ reference getc</a><br><a href="http://blog.csdn.net/little_bobo/article/details/55189472" target="_blank" rel="noopener">fgetc的返回值</a><br><a href="https://baike.baidu.com/item/getchar/919709" target="_blank" rel="noopener">百度百科 getchar</a><br><a href="https://baike.baidu.com/item/putchar" target="_blank" rel="noopener">百度百科 putchar</a><br><a href="https://baike.baidu.com/item/putc" target="_blank" rel="noopener">百度百科 putc&amp;fputc</a><br><a href="https://baike.baidu.com/item/gets" target="_blank" rel="noopener">百度百科 gets</a><br><a href="https://baike.baidu.com/item/fgets" target="_blank" rel="noopener">百度百科 fgets</a><br><a href="https://baike.baidu.com/item/fputs" target="_blank" rel="noopener">百度百科 fputs</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/I-O函数/" rel="tag"># I/O函数</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/16/总结——线程同步/" rel="next" title="总结——线程同步">
+                <i class="fa fa-chevron-left"></i> 总结——线程同步
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/21/春招——致我的处女面/" rel="prev" title="春招——致我的处女面">
+                春招——致我的处女面 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#标准I-O函数"><span class="nav-number">2.</span> <span class="nav-text">标准I/O函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fopen"><span class="nav-number">2.1.</span> <span class="nav-text">fopen</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#freopen"><span class="nav-number">2.2.</span> <span class="nav-text">freopen</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#getc-amp-fgetc"><span class="nav-number">2.3.</span> <span class="nav-text">getc &amp; fgetc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#putc-amp-fputc"><span class="nav-number">2.4.</span> <span class="nav-text">putc &amp; fputc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#getchar-amp-getch"><span class="nav-number">2.5.</span> <span class="nav-text">getchar &amp; getch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#putchar"><span class="nav-number">2.6.</span> <span class="nav-text">putchar</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gets-不会读取到回车"><span class="nav-number">2.7.</span> <span class="nav-text">gets (不会读取到回车)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fgets-会读取到回车"><span class="nav-number">2.8.</span> <span class="nav-text">fgets (会读取到回车)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#puts"><span class="nav-number">2.9.</span> <span class="nav-text">puts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fputs"><span class="nav-number">2.10.</span> <span class="nav-text">fputs</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

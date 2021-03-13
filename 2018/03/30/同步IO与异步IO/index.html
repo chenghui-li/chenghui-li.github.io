@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="同步IO与异步IO,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前xia言che昨天晚上携程笔试还有3分钟结束的时候，收到腾讯的面试电话，肯定接啊。三天前就因为网易笔试的时候腾讯打来电话重约了时间。问了挺多问题的，大概13 4个吧，有两个没答上来，一个没答好，而且可能是因为紧张吧，答的深度也不够。估计要凉凉。有一个问题我影响比较深刻，面试官问到同步IO与异步IO，前几天正好有看stevens的UNP里面有一节提到过这个，所以答的还算可以吧。今天特地总结下，为后">
+<meta name="keywords" content="同步IO与异步IO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="同步IO与异步IO">
+<meta property="og:url" content="www.chenghuili.cn/2018/03/30/同步IO与异步IO/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="前xia言che昨天晚上携程笔试还有3分钟结束的时候，收到腾讯的面试电话，肯定接啊。三天前就因为网易笔试的时候腾讯打来电话重约了时间。问了挺多问题的，大概13 4个吧，有两个没答上来，一个没答好，而且可能是因为紧张吧，答的深度也不够。估计要凉凉。有一个问题我影响比较深刻，面试官问到同步IO与异步IO，前几天正好有看stevens的UNP里面有一节提到过这个，所以答的还算可以吧。今天特地总结下，为后">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E9%98%BB%E5%A1%9EIO.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E9%9D%9E%E9%98%BB%E5%A1%9EIO.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E4%BF%A1%E5%8F%B7%E9%A9%B1%E5%8A%A8IO.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E5%BC%82%E6%AD%A5IO.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E5%90%8C%E6%AD%A5IO%E4%B8%8E%E5%BC%82%E6%AD%A5IO.png">
+<meta property="og:updated_time" content="2019-12-27T13:18:26.707Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="同步IO与异步IO">
+<meta name="twitter:description" content="前xia言che昨天晚上携程笔试还有3分钟结束的时候，收到腾讯的面试电话，肯定接啊。三天前就因为网易笔试的时候腾讯打来电话重约了时间。问了挺多问题的，大概13 4个吧，有两个没答上来，一个没答好，而且可能是因为紧张吧，答的深度也不够。估计要凉凉。有一个问题我影响比较深刻，面试官问到同步IO与异步IO，前几天正好有看stevens的UNP里面有一节提到过这个，所以答的还算可以吧。今天特地总结下，为后">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E9%98%BB%E5%A1%9EIO.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/03/30/同步IO与异步IO/">
+
+
+
+
+
+  <title>同步IO与异步IO | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/03/30/同步IO与异步IO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">同步IO与异步IO</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-30T20:54:10+08:00">
+                2018-03-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/03/30/同步IO与异步IO/" class="leancloud_visitors" data-flag-title="同步IO与异步IO">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前xia言che"><a href="#前xia言che" class="headerlink" title="前xia言che"></a>前xia言che</h1><p>昨天晚上携程笔试还有3分钟结束的时候，收到腾讯的面试电话，肯定接啊。三天前就因为网易笔试的时候腾讯打来电话重约了时间。问了挺多问题的，大概13 4个吧，有两个没答上来，一个没答好，而且可能是因为紧张吧，答的深度也不够。估计要凉凉。有一个问题我影响比较深刻，面试官问到同步IO与异步IO，前几天正好有看stevens的UNP里面有一节提到过这个，所以答的还算可以吧。今天特地总结下，为后面的epoll学习做个铺垫（也问epoll了，说不会…估计已经凉了一半）。<br><a id="more"></a></p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p><strong>IO模型可以分为两大类，一个是同步IO，一个是异步IO。同步IO中又可以分为：阻塞IO，非阻塞IO，IO多路复用和信号驱动式IO</strong><br>对于一次IO访问（以read举例），数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。也就是说：IO发生时会涉及到两个对象，一个是调用这个IO函数的进程，另一个就是内核。当一个read操作发生时，它会经历两个阶段：</p>
+<ol>
+<li>等待数据准备好 (Waiting for the data to be ready)</li>
+<li>将数据从内核缓冲区拷贝到进程缓冲区中 (Copying the data from the kernel to the process)</li>
+</ol>
+<p>若根据第二阶段的不同，可以划分出同步IO与异步IO；若根据这两个阶段的不同，可以划分出五种IO：</p>
+<ul>
+<li>阻塞 I/O（blocking IO）</li>
+<li>非阻塞 I/O（nonblocking IO）</li>
+<li>I/O 多路复用（ IO multiplexing）</li>
+<li>信号驱动 I/O（ signal driven IO）</li>
+<li>异步 I/O（asynchronous IO）</li>
+</ul>
+<h1 id="同步IO"><a href="#同步IO" class="headerlink" title="同步IO"></a>同步IO</h1><h2 id="阻塞IO"><a href="#阻塞IO" class="headerlink" title="阻塞IO"></a>阻塞IO</h2><p>在linux中，默认情况下所有的socket都是阻塞的，比如一个典型的读操作流程：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E9%98%BB%E5%A1%9EIO.png" alt><br>当用户进程调用了recvfrom系统调用，进程由用户态陷入内核态，此时内核开始IO的第一个阶段：准备数据。如果此时数据还没有准备好，这个过程需要等待，整个进程会被阻塞。直到内核将数据准备好，然后将数据从内核缓冲区拷贝到用户缓冲区，内核返回结果，此时用户进程才解除阻塞状态，重新运行。</p>
+<blockquote>
+<p><strong>所以，阻塞IO的特点是在IO两个阶段都发生阻塞。</strong></p>
+</blockquote>
+<h2 id="非阻塞IO"><a href="#非阻塞IO" class="headerlink" title="非阻塞IO"></a>非阻塞IO</h2><p>linux下可以设置socket（通过fcntl函数）使其变为非阻塞。当对一个非阻塞socket执行读操作时：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E9%9D%9E%E9%98%BB%E5%A1%9EIO.png" alt><br>用户进程发出read操作时，如果内核中的数据还没准备好，那么它不会阻塞用户进程，而是立刻返回一个error。用户进程不需要等待，调用后立刻得到一个结果。发现是一个error时，它便知道数据还没有准备好，于是再次发送read操作。直到内核中的数据准备好了，并且再次收到用户进程的read调用时，内核将内核缓冲区的数据拷贝到用户缓冲区，然后返回。</p>
+<blockquote>
+<p><strong>所以，非阻塞IO的第一阶段不阻塞，而是不停地轮询询问，只在第二阶段阻塞。</strong></p>
+</blockquote>
+<h2 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h2><p>这也就是常用的select，poll，epoll了（昨晚问我了解epoll么，我说不了解….但是今晚了解了。哭晕…）。它们的特点是单个进程可以同时处理多个网络连接的IO。因为select，poll，epoll可以不断的轮询所负责的所有socket，当某个socket有数据到达了或者准备好了，就通知用户进程。在调用select后，进程会被阻塞（不是被socket IO阻塞的，而是被select阻塞），同时内核会监视select负责的所有socket，当任何一个socket中的数据准备好了，select就会返回，进程唤醒，然后调用read操作，将数据从内核缓冲区拷贝到用户缓冲区。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.png" alt></p>
+<blockquote>
+<p><strong>所以，IO多路复用的特点是两个阶段都会阻塞。</strong></p>
+</blockquote>
+<h2 id="信号驱动IO"><a href="#信号驱动IO" class="headerlink" title="信号驱动IO"></a>信号驱动IO</h2><p>信号驱动IO的原理是：当用户进程读取数据时，如果此时数据没有准备好，那么该调用会返回，进程不会阻塞，可以干其他的事情，但是此时内核已经在进行第一阶段的操作了：开始准备数据。当数据准备好时，内核会向用户进程发送一个信号，表示数据已经准备好可以读了，用户进程再调用read系统调用将内核缓冲区的数据拷贝到用户缓冲区中，拷贝完成才返回。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E4%BF%A1%E5%8F%B7%E9%A9%B1%E5%8A%A8IO.png" alt></p>
+<blockquote>
+<p><strong>所以，信号驱动IO的特点是，在IO的第一阶段不阻塞，在第二阶段阻塞。</strong></p>
+</blockquote>
+<h1 id="异步IO"><a href="#异步IO" class="headerlink" title="异步IO"></a>异步IO</h1><p>异步IO的原理是：当用户进程发起read系统调用后，不会阻塞立即返回，它可以去做别的事情。此时内核会等待数据准备完成，然后将数据拷贝到用户内存，当这一切完成之后，内核给用户进程发送一个信号，通知用户进程数据已经拷贝完成了。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E5%BC%82%E6%AD%A5IO.png" alt></p>
+<blockquote>
+<p><strong>所以，异步IO的特点是，在IO的两个阶段都不会发生阻塞。</strong></p>
+</blockquote>
+<p>总结一下：<br><em>阻塞IO与非阻塞IO的区别在于</em>：<strong>在内核等待数据准备好的结段，阻塞IO会一直阻塞对应的进程直到数据准备好并且拷贝到用户缓冲区，而非阻塞IO在数据准备阶段是不阻塞的，用户进程会轮询（占用CPU），在数据拷贝阶段会发生阻塞。</strong></p>
+<p><em>同步IO与异步IO的区别是</em>：<strong>在数据拷贝的阶段，同步IO是阻塞的，直到数据拷贝完成，而异步IO不会阻塞，数据拷贝完成才通知用户进程。</strong><br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/72f0aa653523647c9f48f0cc49e89ccec749cf6e/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E5%90%8C%E6%AD%A5IO%E4%B8%8E%E5%BC%82%E6%AD%A5IO.png" alt></p>
+<hr>
+<p>参考资料：<br>《UNIX网络编程 v1》（UNP）<br><a href="https://segmentfault.com/a/1190000003063859" target="_blank" rel="noopener">Linux IO模式及 select、poll、epoll详解</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/同步IO与异步IO/" rel="tag"># 同步IO与异步IO</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/27/总结——进程间通信/" rel="next" title="总结——进程间通信">
+                <i class="fa fa-chevron-left"></i> 总结——进程间通信
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/02/深入分析epoll函数/" rel="prev" title="深入分析epoll函数">
+                深入分析epoll函数 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前xia言che"><span class="nav-number">1.</span> <span class="nav-text">前xia言che</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">2.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#同步IO"><span class="nav-number">3.</span> <span class="nav-text">同步IO</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#阻塞IO"><span class="nav-number">3.1.</span> <span class="nav-text">阻塞IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非阻塞IO"><span class="nav-number">3.2.</span> <span class="nav-text">非阻塞IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO多路复用"><span class="nav-number">3.3.</span> <span class="nav-text">IO多路复用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#信号驱动IO"><span class="nav-number">3.4.</span> <span class="nav-text">信号驱动IO</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异步IO"><span class="nav-number">4.</span> <span class="nav-text">异步IO</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="TCP/IP,网络编程,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="虽然协议族被称为“TCP/IP”，但其实包含很多成员，本文主要介绍：  TCP连接的建立和终止 字节处理函数 基本套接字函数">
+<meta name="keywords" content="TCP&#x2F;IP,网络编程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="初识TCP&#x2F;IP">
+<meta property="og:url" content="www.chenghuili.cn/2018/01/07/初识TCP-IP/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="虽然协议族被称为“TCP/IP”，但其实包含很多成员，本文主要介绍：  TCP连接的建立和终止 字节处理函数 基本套接字函数">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/o_tcp%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/TCP%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97.png">
+<meta property="og:updated_time" content="2019-06-27T07:53:25.179Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="初识TCP&#x2F;IP">
+<meta name="twitter:description" content="虽然协议族被称为“TCP/IP”，但其实包含很多成员，本文主要介绍：  TCP连接的建立和终止 字节处理函数 基本套接字函数">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/o_tcp%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/01/07/初识TCP-IP/">
+
+
+
+
+
+  <title>初识TCP/IP | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/01/07/初识TCP-IP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">初识TCP/IP</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-07T22:50:26+08:00">
+                2018-01-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/01/07/初识TCP-IP/" class="leancloud_visitors" data-flag-title="初识TCP/IP">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>虽然协议族被称为“TCP/IP”，但其实包含很多成员，本文主要介绍：</p>
+<ul>
+<li>TCP连接的建立和终止</li>
+<li>字节处理函数</li>
+<li>基本套接字函数<a id="more"></a>
+</li>
+</ul>
+<h1 id="TCP连接的建立和终止"><a href="#TCP连接的建立和终止" class="headerlink" title="TCP连接的建立和终止"></a>TCP连接的建立和终止</h1><h2 id="TCP连接的建立（三次握手）"><a href="#TCP连接的建立（三次握手）" class="headerlink" title="TCP连接的建立（三次握手）"></a>TCP连接的建立（三次握手）</h2><p>TCP即面向连接的、全双工的、可靠的传输控制协议。建立一个TCP连接时发生以下情形：</p>
+<ol>
+<li>服务器必须准备好接收外来的连接。通常由socket，bind，listen三个函数来完成，即<em>被动打开</em>。</li>
+<li>客户端通过调用connect发起<em>主动打开</em>，这导致客户TCP发送一个SYN同步分节，它告诉服务器客户将在连接中发送的数据的初始序列号。通常SYN分节不携带数据，其所在IP数据报只含有一个IP首部，一个TCP首部以及可能有的TCP选项。</li>
+<li>服务器必须确认（ACK）客户的SYN，同时自己也得发送一个SYN分节，它含有服务器在同一连接中发送的数据的初始序列号</li>
+<li>客户必须确认服务器的SYN。<br>这种交换至少需要3个分组，因此称为TCP的<strong>三次握手</strong><br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/o_tcp%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.jpg" alt><br>客户的初始序列号为J，服务器的初始序列号为K，<strong>ACK中的确认号是发送这个ACK的一端所期待的下一个序列号</strong>，因为SYN占据一个字节的序列号空间，所以每个SYN的ACK确认号就是该SYN的初始序列号加1。</li>
+</ol>
+<h2 id="TCP连接的释放（四次挥手）"><a href="#TCP连接的释放（四次挥手）" class="headerlink" title="TCP连接的释放（四次挥手）"></a>TCP连接的释放（四次挥手）</h2><p>TCP建立一个连接需要3个分节，终止一个连接则需要4个分节。</p>
+<ol>
+<li>某个应用进程首先调用close执行<em>主动关闭</em>，该端的TCP于是发送一个FIN分节，表示数据发送完毕。</li>
+<li>接收到这个FIN的对端执行<em>被动关闭</em>，这个FIN由TCP确认，它的接收也作为一个文件结束符传递给接收端应用进程（放在已排队等候该应用进程接收的其他数据之后），因为FIN的接收意味着接收端应用进程在相应连接上再无额外数据可以接收。</li>
+<li>一段时间后，接收到这个文件结束符的应用进程调用close关闭它的套接字。这导致它的TCP也发送一个FIN。</li>
+<li>接收这个最终FIN的原发送端TCP确认这个FIN。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/TCP%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B.png" alt></li>
+</ol>
+<h1 id="字节处理"><a href="#字节处理" class="headerlink" title="字节处理"></a>字节处理</h1><h2 id="字节序处理函数"><a href="#字节序处理函数" class="headerlink" title="字节序处理函数"></a>字节序处理函数</h2><p>考虑一个16位整数，由两个字节组成。内存中存储这两个字节有两种方法：一种是将低序字节存储在起始地址，即小端字节序；另一种是将高序字节存储在起始地址，即大端字节序。<br>ipv4地址和TCP或UDP端口号在套接字地址结构中总是以网络字节序来存储。网际协议使用<strong>大端字节序</strong>来传送这些多字节整数。<br>在主机字节序和网络字节序之间的转换可以使用如下四个函数：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="keyword">uint16_t</span> htons(<span class="keyword">uint16_t</span> host16bitvalue);</span><br><span class="line"><span class="keyword">uint32_t</span> htonl(<span class="keyword">uint32_t</span> host32bitvalue);</span><br><span class="line"><span class="comment">//返回网络字节序</span></span><br><span class="line"><span class="keyword">uint16_t</span> ntohs(<span class="keyword">uint16_t</span> net16bitvalue);</span><br><span class="line"><span class="keyword">uint32_t</span> ntohl(<span class="keyword">uint32_t</span> net32bitvalue);</span><br><span class="line"><span class="comment">//返回主机字节序</span></span><br></pre></td></tr></table></figure></p>
+<p>此处参数和返回值均为16或32位的二进制数，但是一般我们使用的是点分十进制表示IP地址和端口，故需要两个与协议无关的点分十进制与二进制转换的函数：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">inet_pton</span><span class="params">(<span class="keyword">int</span> family,<span class="keyword">const</span> <span class="keyword">char</span> *strptr,<span class="keyword">void</span> *addrptr)</span></span>;</span><br><span class="line"><span class="comment">//成功返回1，输入无效返回0，出错返回-1</span></span><br><span class="line"><span class="function"><span class="keyword">const</span> <span class="keyword">char</span> *<span class="title">inet_ntop</span><span class="params">(<span class="keyword">int</span> family,<span class="keyword">const</span> <span class="keyword">void</span> *addrptr,<span class="keyword">char</span> *strptr,<span class="keyword">size_t</span> len)</span></span>;</span><br><span class="line"><span class="comment">//若成功返回指向结果的指针，出错则为NULL</span></span><br></pre></td></tr></table></figure></p>
+<p>family参数既可以是AF_INET，也可以是AF_INET6。<br>第一个函数尝试转换由strptr指针所指的字符串，并通过addrptr指针存放二进制结果。<br>第二个函数做相反转换，从数值格式addrptr转换到点分十进制表达式格式strptr，len参数是目标存储单元的大小，以免该函数溢出调用者的缓冲区。</p>
+<h2 id="b系函数与mem系函数（我起的名字…）"><a href="#b系函数与mem系函数（我起的名字…）" class="headerlink" title="b系函数与mem系函数（我起的名字…）"></a>b系函数与mem系函数（我起的名字…）</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;strings.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">bzero</span><span class="params">(<span class="keyword">void</span> *dest,<span class="keyword">size_t</span> nbytes)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">bcopy</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *src,<span class="keyword">void</span> *dest,<span class="keyword">size_t</span> nbytes)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">bcmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *ptr1,<span class="keyword">const</span> <span class="keyword">void</span> *ptr2,<span class="keyword">size_t</span> nbytes)</span></span>;    <span class="comment">//相等则为0，否则非0</span></span><br></pre></td></tr></table></figure>
+<p>bzero把目标字节串中指定数目的字节置为0，经常使用该函数把套接字地址初始化为0（虽然我以前一直用memset）。<br>bcopy将指定数目的字节从源字节串（src）复制（注：书上说的是移到）到目标字节串（dest）。<br>bcmp比较任意两个字节串，相同返回0，否则返回非0。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">memset</span><span class="params">(<span class="keyword">void</span> *dest,<span class="keyword">int</span> c,<span class="keyword">size_t</span> len)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">memcpy</span><span class="params">(<span class="keyword">void</span> *dest,<span class="keyword">void</span> *src,<span class="keyword">size_t</span> nbytes)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">memcmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *ptr1,<span class="keyword">const</span> <span class="keyword">void</span> *ptr2,<span class="keyword">size_t</span> nbytes)</span></span>;    <span class="comment">//相等返回0，否则返回&lt;0或&gt;0</span></span><br></pre></td></tr></table></figure>
+<p>memset把目标字节串指定数目的字节置为值c，（注：其实c只能取0或-1）。<br>memcpy类似bcopy，但是顺序相反，可以将memcpy两个参数的顺序看作类似C语言赋值的顺序：dest = src。当源字节串与目标字节串重叠时，bcopy可以正常处理，但是memcpy会出问题，此时需要用memmove函数。<br>memcmp的返回值类似strcmp，不做过多解释。</p>
+<p>下面看两个CSAPP上的例题：<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">//</span>点分十进制转十六进制</span><br><span class="line"><span class="comment">#include&lt;arpa/inet.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdlib.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;string.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line">int main(int argc,char *argv[])&#123;</span><br><span class="line">	struct in_addr addr;</span><br><span class="line">	<span class="keyword">if</span>(argc != <span class="number">2</span>)&#123;</span><br><span class="line">		fprintf(stderr,<span class="string">"%s"</span>,argv[<span class="number">0</span>]);</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span>(inet_pton(AF_INET,argv[<span class="number">1</span>],&amp;addr)&lt;=<span class="number">0</span>)&#123;	<span class="regexp">//</span>先将输入的点分十进制串转换为IP存在addr.s_addr中（大端法）</span><br><span class="line">		printf(<span class="string">"error"</span>);</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	printf(<span class="string">"0x%x\n"</span>,ntohl(addr.s_addr));		<span class="regexp">//</span>将该二进制转为机器表示字节序，然后再输出其十六进制</span><br><span class="line">	<span class="keyword">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="regexp">//</span>十六进制转点分十进制</span><br><span class="line"><span class="comment">#include&lt;arpa/inet.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdlib.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;string.h&gt;</span></span><br><span class="line">int main(int argc,char *argv[])&#123;</span><br><span class="line">	struct in_addr info;</span><br><span class="line">	uint32_t addr;</span><br><span class="line">	char buf[<span class="number">1024</span>];</span><br><span class="line">	memset(buf,<span class="number">0</span>,sizeof(buf));</span><br><span class="line">	<span class="keyword">if</span>(argc != <span class="number">2</span>)&#123;</span><br><span class="line">		fprintf(stderr,<span class="string">"%s"</span>,argv[<span class="number">0</span>]);</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	sscanf(argv[<span class="number">1</span>],<span class="string">"%x"</span>,&amp;addr);		<span class="regexp">//</span>字符串转存成数字</span><br><span class="line">	info.s_addr = htonl(addr);		<span class="regexp">//</span>变为网络字节序存到in_addr.s_addr中</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(!inet_ntop(AF_INET,&amp;info,buf,<span class="number">1024</span>))&#123;		<span class="regexp">//</span>将该二进制换为点分十进制存到buf中</span><br><span class="line">		printf(<span class="string">"error"</span>);</span><br><span class="line">		<span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	printf(<span class="string">"%s\n"</span>,buf);</span><br><span class="line">	<span class="keyword">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="基本套接字函数"><a href="#基本套接字函数" class="headerlink" title="基本套接字函数"></a>基本套接字函数</h1><h2 id="socket函数"><a href="#socket函数" class="headerlink" title="socket函数"></a>socket函数</h2><p>为执行网络IO，一个进程必须做的第一件事就是调用socket函数， 指定期望的通信协议类型（TCP、UDP、IPv4,、IPv6等）<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">socket</span><span class="params">(<span class="keyword">int</span> family,<span class="keyword">int</span> type,<span class="keyword">int</span> protocol)</span></span>;    <span class="comment">//成功返回非负描述符，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>family指明协议类型，type指明套接字类型，protocol可以设为某个协议常值，（一般设为0）。成功返回的值称为<strong>套接字描述符</strong>，此时只是指定了协议族和套接字类型，并没有指定本地协议地址和远程协议地址（可以说此时的套接字只是一个空壳）。此时套接字状态为CLOSED。</p>
+<h2 id="connect函数"><a href="#connect函数" class="headerlink" title="connect函数"></a>connect函数</h2><p>TCP客户用connect函数来建立与TCP服务器的连接。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">connect</span><span class="params">(<span class="keyword">int</span> sockfd,<span class="keyword">const</span> struct sockaddr *servaddr,<span class="keyword">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"><span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>sockfd为socket函数的返回值，也就是套接字描述符，第二个，第三个参数分别表示一个指向套接字地址结构的指针和该结构的大小。套接字地址结构必须含有服务器的IP地址和端口号。<br>connect函数导致当前套接字从CLOSED状态转移到SYN_SENT状态，如果成功再转移到ESTABLISHED状态。若connect失败则该套接字不再可用，必须关闭，不能对这样的套接字在此调用connect函数。</p>
+<h2 id="bind函数"><a href="#bind函数" class="headerlink" title="bind函数"></a>bind函数</h2><p>bind函数把一个本地协议地址赋予一个套接字。对于网际协议，协议地址是32位的IPv4地址或128位的IPv6地址与16位的TCP或UDP端口号的组合。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">bind</span><span class="params">(<span class="keyword">int</span> sockfd,<span class="keyword">const</span> struct sockaddr *myaddr,<span class="keyword">socklen_t</span> addrlen)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>第二个参数是一个指向特定于协议的地址结构的指针，第三个参数是该结构的长度。对于TCP，调用bind函数可以指定一个端口号，或者一个IP地址，也可以两者都指定，也可以都不指定。<br>如果指定端口号为0，那么内核就在bind函数被调用的时候选择一个临时端口。如果指定IP地址为通配符，那么内核将等到套接字已连接（TCP）或已在套接字上发出数据报（UDP）时才选择一个本地IP地址。<br>对于IPv4，通配地址由常值INADDR_ANY来指定：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">servaddr</span>;</span></span><br><span class="line">servaddr.sin_addr.s_addr = htonl(INADDR_ANY)</span><br></pre></td></tr></table></figure></p>
+<p>对于IPv6，因为其地址放在一个结构中，应这样使用：<br><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">struct sockaddr_in6 serv<span class="comment">;</span></span><br><span class="line">serv.sin6_addr = in6addr_any<span class="comment">;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="listen函数"><a href="#listen函数" class="headerlink" title="listen函数"></a>listen函数</h2><p>listen函数由TCP服务器调用，它做两件事：</p>
+<ol>
+<li>当socket函数建立一个套接字时，它被默认为是一个主动套接字，即可以调用connect发起连接的套接字。调用listen函数把一个未连接的套接字转换为被动套接字，指示内核应接受指向该套接字的连接请求。listen函数使得套接字由CLOSED状态转移到LISTEN状态。</li>
+<li>规定内核应该为相应套接字排队的最大了连接个数（即函数的第二个参数）</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">listen</span><span class="params">(<span class="keyword">int</span> sockfd,<span class="keyword">int</span> backlog)</span></span>;    <span class="comment">//成功返回0，出错返回-1</span></span><br></pre></td></tr></table></figure>
+<p>listen应该出现在socket函数和bind函数之后，accept函数之前。<br>内核为任何一个给定的监听套接字维护两个队列：</p>
+<ol>
+<li><strong>未完成连接队列</strong>：已由客户端发出并到达服务器，而服务器正在等待完成TCP三次握手过程。这些套接字处于SYN_RCVD状态。</li>
+<li><strong>已完成连接队列</strong>：每个已完成TCP三次握手的客户对应其中一项。这些套接字处于ESTABLISHED状态。</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%A5%97%E6%8E%A5%E5%AD%97/%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97.png" alt><br>当来自客户的SYN分节到达时，服务器TCP在未完成队列创建一个项，然后响应三次握手的第二个分节（服务器的SYN+对客户的ACK），该项一直保留，直到第三个分节到达或者超时。三次握手成功，该项被移到已完成队列队尾。调用accept时已完成队列的队头项返回给进程，如果该队列为空，进程睡眠，直到TCP在该队列放入一个项。<br><strong>listen函数的第二个参数即两队列项数和的最大值</strong></p>
+<h2 id="accept函数"><a href="#accept函数" class="headerlink" title="accept函数"></a>accept函数</h2><p>accept函数由服务器调用，用于从已完成连接队列队头返回下一个连接。如果已完成连接队列为空，则进程进入睡眠。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">accept</span><span class="params">(<span class="keyword">int</span> sockfd,struct sockaddr *cliaddr,<span class="keyword">socklen_t</span> *addrlen)</span></span>;</span><br><span class="line"><span class="comment">//成功返回已连接描述符（非负），出错返回-1</span></span><br></pre></td></tr></table></figure></p>
+<p>第一个参数为listen返回的监听套接字描述符，参数cliaddr和addrlen用来返回已连接的对端进程（客户）的协议地址。调用前，将由*addrlen所引用的整数值置为由cliaddr所指的套接字地址结构的长度。如果对返回客户的协议地址不感兴趣，可以将cliaddr和addrlen置为NULL。<br>调用成功则返回一个新的描述符，即已连接套接字描述符，它与监听套接字描述符不同。一个服务器通常仅仅创建一个监听套接字，它在服务器的生命期内一直存在，内核为每个服务器进程接受的客户连接创建一个已连接套接字。服务器完成对给定客户的服务时，相应的已连接套接字就关闭。<br>下面看两个UNP上TCP时间获取的例子：<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">//</span>client端：</span><br><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;sys/socket.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;arpa/inet.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;netinet/in.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;string.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdlib.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;unistd.h&gt;</span></span><br><span class="line"><span class="comment">#define MAXN 1024</span></span><br><span class="line">int main(int argc,char *argv[])&#123;</span><br><span class="line">    int sockfd,n;</span><br><span class="line">    char recvline[MAXN+<span class="number">1</span>];</span><br><span class="line">    struct sockaddr_in servaddr;</span><br><span class="line">    <span class="keyword">if</span>((sockfd = socket(AF_INET,SOCK_STREAM,<span class="number">0</span>)) == -<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>socket error</span><br><span class="line">    bzero(&amp;servaddr,sizeof(servaddr));</span><br><span class="line">    servaddr.sin_family = AF_INET;</span><br><span class="line">    servaddr.sin_port = htons(<span class="number">13</span>);    <span class="regexp">//</span>获取时间的端口号</span><br><span class="line">    <span class="keyword">if</span>(inet_pton(AF_INET,argv[<span class="number">1</span>],&amp;servaddr.sin_addr)&lt;=<span class="number">0</span>)<span class="regexp">//</span>点分十进制转二进制</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//i</span>net_pton error</span><br><span class="line">    <span class="keyword">if</span>(connect(sockfd,(struct sockaddr *)&amp;servaddr,sizeof(servaddr)) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>connect error</span><br><span class="line">    <span class="keyword">while</span>((n = read(sockfd,recvline,MAXN)) &gt; <span class="number">0</span>)&#123;</span><br><span class="line">        recvline[n] = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span>(fputs(recvline,stdout) == EOF)</span><br><span class="line">            <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>fputs error</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(n&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>read error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">//</span>server 端：</span><br><span class="line"><span class="comment">#include&lt;stdio.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;sys/socket.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;arpa/inet.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;netinet/in.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;string.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;time.h&gt;</span></span><br><span class="line"><span class="comment">#include&lt;stdlib.h&gt;</span></span><br><span class="line"><span class="comment">#define MAXN 1024</span></span><br><span class="line">int main(int argc,char *argv[])&#123;</span><br><span class="line">    int listenfd,connfd;</span><br><span class="line">    struct sockaddr_in servaddr;</span><br><span class="line">    char buff[MAXN];</span><br><span class="line">    time_t ticks;</span><br><span class="line">    <span class="keyword">if</span>((listenfd = socket(AF_INET,SOCK_STREAM,<span class="number">0</span>))&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>socket error</span><br><span class="line">    bzero(&amp;servaddr,sizeof(servaddr));</span><br><span class="line">    servaddr.sin_family = AF_INET;</span><br><span class="line">    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);</span><br><span class="line">    servaddr.sin_port = htons(<span class="number">13</span>);</span><br><span class="line">    <span class="keyword">if</span>(bind(listenfd,(struct sockaddr *)&amp;servaddr,sizeof(servaddr)) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span>(listen(listenfd,<span class="number">20</span>) == -<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>listen error</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="keyword">if</span>((connfd = accept(listenfd,(struct sockaddr *)NULL,NULL)) == -<span class="number">1</span>)</span><br><span class="line">            <span class="keyword">exit</span>(<span class="number">1</span>);    <span class="regexp">//</span>accept error</span><br><span class="line">        ticks = time(NULL);</span><br><span class="line">        snprintf(buff,sizeof(buff),<span class="string">"%.24\r\n"</span>,ctime(&amp;ticks));</span><br><span class="line">        write(connfd,buff,strlen(buff));</span><br><span class="line">        close(connfd);</span><br><span class="line">    &#125;</span><br><span class="line">    return <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>刚开始学习网络编程，这篇写的比较浅，干货不多…<br>参考资料：<br>《深入理解计算机系统 3th》（CSAPP）<br>《UNIX网络编程 v1 3th》（UNP）</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/TCP-IP/" rel="tag"># TCP/IP</a>
+          
+            <a href="/tags/网络编程/" rel="tag"># 网络编程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/06/【转】研究生——两个月/" rel="next" title="【转】研究生——两个月">
+                <i class="fa fa-chevron-left"></i> 【转】研究生——两个月
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/09/二叉搜索树详解/" rel="prev" title="二叉搜索树详解">
+                二叉搜索树详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP连接的建立和终止"><span class="nav-number">1.</span> <span class="nav-text">TCP连接的建立和终止</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP连接的建立（三次握手）"><span class="nav-number">1.1.</span> <span class="nav-text">TCP连接的建立（三次握手）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP连接的释放（四次挥手）"><span class="nav-number">1.2.</span> <span class="nav-text">TCP连接的释放（四次挥手）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#字节处理"><span class="nav-number">2.</span> <span class="nav-text">字节处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#字节序处理函数"><span class="nav-number">2.1.</span> <span class="nav-text">字节序处理函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b系函数与mem系函数（我起的名字…）"><span class="nav-number">2.2.</span> <span class="nav-text">b系函数与mem系函数（我起的名字…）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本套接字函数"><span class="nav-number">3.</span> <span class="nav-text">基本套接字函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#socket函数"><span class="nav-number">3.1.</span> <span class="nav-text">socket函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#connect函数"><span class="nav-number">3.2.</span> <span class="nav-text">connect函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bind函数"><span class="nav-number">3.3.</span> <span class="nav-text">bind函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#listen函数"><span class="nav-number">3.4.</span> <span class="nav-text">listen函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#accept函数"><span class="nav-number">3.5.</span> <span class="nav-text">accept函数</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="调试工具,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="来鹅厂快半年，上过一次Linux性能分析与调试工具的课程，当时只是拍了照片，听的比较懵逼，一次性没法消化，现在整理下，一来备忘，二来需要时可以快速查到。">
+<meta name="keywords" content="调试工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux程序调试工具总结">
+<meta property="og:url" content="www.chenghuili.cn/2019/09/11/linux程序调试工具总结/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="来鹅厂快半年，上过一次Linux性能分析与调试工具的课程，当时只是拍了照片，听的比较懵逼，一次性没法消化，现在整理下，一来备忘，二来需要时可以快速查到。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-top-add.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/%E5%8E%8B%E6%B5%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-record-add.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-stat1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-stat2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-stat3.png">
+<meta property="og:updated_time" content="2019-12-27T13:16:45.235Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux程序调试工具总结">
+<meta name="twitter:description" content="来鹅厂快半年，上过一次Linux性能分析与调试工具的课程，当时只是拍了照片，听的比较懵逼，一次性没法消化，现在整理下，一来备忘，二来需要时可以快速查到。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-top-add.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2019/09/11/linux程序调试工具总结/">
+
+
+
+
+
+  <title>linux程序调试工具总结 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2019/09/11/linux程序调试工具总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">linux程序调试工具总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-11T16:42:42+08:00">
+                2019-09-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工具/" itemprop="url" rel="index">
+                    <span itemprop="name">工具</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2019/09/11/linux程序调试工具总结/" class="leancloud_visitors" data-flag-title="linux程序调试工具总结">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>来鹅厂快半年，上过一次Linux性能分析与调试工具的课程，当时只是拍了照片，听的比较懵逼，一次性没法消化，现在整理下，一来备忘，二来需要时可以快速查到。<br><a id="more"></a></p>
+<h1 id="perf"><a href="#perf" class="headerlink" title="perf"></a>perf</h1><p>perf可以对指定的进程或者事件进行采样，用来找出应用程序或者内核的热点函数，找到哪个函数cpu占比比较高，从而定位性能瓶颈。<br>比较常用的有perf top，perf record， perf report， perf stat，还有perf list，perf list用来列出支持哪些性能事件。此文对其不做过多介绍。</p>
+<h2 id="perf-top"><a href="#perf-top" class="headerlink" title="perf top"></a>perf top</h2><p>perf top可以显示某个应用进程或者当前机器上（root权限）中占用cpu时钟最多的函数或者指令。<br>写了一个示例：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">示例<span class="number">1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> &amp;i)</span></span>&#123;</span><br><span class="line">        ++i;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">                add(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以在root下直接运行perf top：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-top-add.png" alt="perf-top-add"><br>输出结果包含四列：</p>
+<ul>
+<li>samples：采样数。采样总数中，有多少次是该事件</li>
+<li>pcnt：该事件在所有采样中所占的比例</li>
+<li>function：事件符号名/函数名，有时没法用函数名表示会显示一串地址</li>
+<li>DSO：Dynamic Shared Object，可以是应用程序、内核、动态链接库、模块。</li>
+</ul>
+<p>也可以在当前用户下找到运行的进程，指定进程号从而对某个进程进行采样分析。<br>常用命令参数：<br>-p <pid\>：分析目标进程及其创建的线程。</pid\></p>
+<p>-k <path\>：带符号表的内核映像所在的路径。</path\></p>
+<p>-K：不显示属于内核或模块的符号。</p>
+<p>-U：不显示属于用户态程序的符号。</p>
+<p>-d <n\>：界面的刷新周期，默认为2s，因为perf top默认每2s从mmap的内存区域读取一次性能数据。</n\></p>
+<p>-g：得到函数的调用关系图。</p>
+<p>最近在做进程性能压测，实测一般情况perf top确实好用，刚压测时显示vprintf函数耗时高，才突然想起忘记调整日志级别。不过到了性能瓶颈时，它就不能马上看出哪里需要优化了。比如这次压测故事线，perf top显示最耗时的是free/malloc，而且所占cpu比并不高（5%），但也标红了。这时应该要需要从设计层进行优化了吧（个人认为）<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/%E5%8E%8B%E6%B5%8B.png" alt="压测"></p>
+<h2 id="perf-record-perf-report"><a href="#perf-record-perf-report" class="headerlink" title="perf record,perf report"></a>perf record,perf report</h2><p>perf top可以实时显示性能信息，但是不可以保存数据，没有办法离线或者进行后续的分析。perf record提供了保存数据的功能，它可以将性能数据保存到当前目录下的perf.data里，使用perf report进行展示。<br>perf record运行时当前窗口会阻塞，需要ctrl-c结束采样与记录，采样记录没有结束时perf.data不可以查看与展示。<br>可以直接perf record ./a.out，即直接跟可执行程序，可以通过-p指定进程号。不过一般可执行程序并不是./就可以运行，建议使用-p进程号。<br>上述示例的perf report结果：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-record-add.png" alt="perf report"></p>
+<h2 id="perf-stat"><a href="#perf-stat" class="headerlink" title="perf stat"></a>perf stat</h2><p>perf stat可以分析应用程序某次执行的性能状况，一般7*24h运行的后台程序不太适合用这种方法。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//示例2</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> &amp;i)</span></span>&#123;</span><br><span class="line">        ++i;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span> ; j &lt; <span class="number">10000</span>; j++)&#123;</span><br><span class="line">                add(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>perf stat适用于分析这种可以执行完的“有头有尾”的程序。效果如下：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-stat1.png" alt="perf stat1"><br>也可以使用-r参数指定执行多次，从而获得平均数据：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-stat2.png" alt="perf stat2"><br>也可以分析Linux命令：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%80%A7%E8%83%BD%E8%B0%83%E8%AF%95/perf-stat3.png" alt="perf stat3"><br>看出分析包含10个性能数据统计：</p>
+<ul>
+<li><p>task-clock：任务真正占用的处理器时间，单位为ms。CPUs utilized = task-clock / time elapsed，CPU的占用率。</p>
+</li>
+<li><p>context-switches：上下文的切换次数。</p>
+</li>
+<li><p>CPU-migrations：处理器迁移次数。Linux为了维持多个处理器的负载均衡，在特定条件下会将某个任务从一个CPU迁移到另一个CPU。</p>
+</li>
+<li><p>page-faults：缺页异常的次数。当应用程序请求的页面尚未建立、请求的页面不在内存中，或者请求的页面虽然在内存中，但物理地址和虚拟地址的映射关系尚未建立时，都会触发一次缺页异常。另外TLB不命中，页面访问权限不匹配等情况也会触发缺页异常。</p>
+</li>
+<li><p>cycles：消耗的处理器周期数。如果把被ls使用的cpu cycles看成是一个处理器的，那么它的主频为2.486GHz。可以用cycles / task-clock算出。</p>
+</li>
+<li><p>stalled-cycles-frontend：略过。</p>
+</li>
+<li><p>stalled-cycles-backend：略过。</p>
+</li>
+<li><p>instructions：执行了多少条指令。IPC为平均每个cpu cycle执行了多少条指令。</p>
+</li>
+<li><p>branches：遇到的分支指令数。branch-misses是预测错误的分支指令数。</p>
+</li>
+</ul>
+<p>常用参数：<br>-p：stat events on existing process id (comma separated list). 仅分析目标进程及其创建的线程。</p>
+<p>-a：system-wide collection from all CPUs. 从所有CPU上收集性能数据。</p>
+<p>-r：repeat command and print average + stddev (max: 100). 重复执行命令求平均。</p>
+<p>-C：Count only on the list of CPUs provided (comma separated list), 从指定CPU上收集性能数据。</p>
+<p>-v：be more verbose (show counter open errors, etc), 显示更多性能数据。</p>
+<p>-n：null run - don’t start any counters，只显示任务的执行时间 。</p>
+<p>-x SEP：指定输出列的分隔符。</p>
+<p>-o file：指定输出文件，–append指定追加模式。</p>
+<p>–pre \<cmd\>：执行目标程序前先执行的程序。</cmd\></p>
+<p>–post \<cmd\>：执行目标程序后再执行的程序。</cmd\></p>
+<h1 id="ltrace，strace"><a href="#ltrace，strace" class="headerlink" title="ltrace，strace"></a>ltrace，strace</h1><p>ltrace用来跟踪一个进程的库函数调用情况；strace用来跟踪一个进程的系统调用或信号产生的情况。这两个命令既可以调试一个新的程序，也可以调试某个正在运行的进程，使用方式类似。<br>常用参数：<br>-f ：除了跟踪当前进程外，还跟踪其子进程。<br>-o file ：将输出信息写到文件file中，而不是显示到标准错误输出（stderr）。<br>-p pid ：绑定到一个由pid对应的正在运行的进程。此参数常用来调试后台进程。<br>-D ：在每行输出中打印相对时间戳，即该调用所消耗的时间</p>
+<p>后面学习到高阶工具继续更…</p>
+<hr>
+<p>参考资料：<br><a href="https://blog.csdn.net/zhangskd/article/details/37902159" target="_blank" rel="noopener">系统级性能分析工具 — Perf</a><br><a href="https://blog.51cto.com/liuzhengwei521/2360430" target="_blank" rel="noopener">perf-强大的性能分析工具</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/调试工具/" rel="tag"># 调试工具</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/18/再见，拉面女神/" rel="next" title="再见，拉面女神">
+                <i class="fa fa-chevron-left"></i> 再见，拉面女神
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/19/Git踩坑指南/" rel="prev" title="Git踩坑指南">
+                Git踩坑指南 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#perf"><span class="nav-number">1.</span> <span class="nav-text">perf</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#perf-top"><span class="nav-number">1.1.</span> <span class="nav-text">perf top</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#perf-record-perf-report"><span class="nav-number">1.2.</span> <span class="nav-text">perf record,perf report</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#perf-stat"><span class="nav-number">1.3.</span> <span class="nav-text">perf stat</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ltrace，strace"><span class="nav-number">2.</span> <span class="nav-text">ltrace，strace</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

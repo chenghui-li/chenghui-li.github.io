@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="内存分配,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="许多系统程序需要为动态数据结构分配额外内存，此类数据结构的大小在程序运行时才能确定。本文介绍下在堆或者堆栈上分配内存的函数">
+<meta name="keywords" content="内存分配">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈内存分配">
+<meta property="og:url" content="www.chenghuili.cn/2017/12/31/浅谈内存分配/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="许多系统程序需要为动态数据结构分配额外内存，此类数据结构的大小在程序运行时才能确定。本文介绍下在堆或者堆栈上分配内存的函数">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/malloc.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E7%A9%BA%E9%97%B2%E5%88%97%E8%A1%A8.png">
+<meta property="og:updated_time" content="2019-12-27T13:23:05.381Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅谈内存分配">
+<meta name="twitter:description" content="许多系统程序需要为动态数据结构分配额外内存，此类数据结构的大小在程序运行时才能确定。本文介绍下在堆或者堆栈上分配内存的函数">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/malloc.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2017/12/31/浅谈内存分配/">
+
+
+
+
+
+  <title>浅谈内存分配 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2017/12/31/浅谈内存分配/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">浅谈内存分配</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-31T19:52:02+08:00">
+                2017-12-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/12/31/浅谈内存分配/" class="leancloud_visitors" data-flag-title="浅谈内存分配">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>许多系统程序需要为动态数据结构分配额外内存，此类数据结构的大小在程序运行时才能确定。本文介绍下在堆或者堆栈上分配内存的函数<br><a id="more"></a></p>
+<h1 id="在堆上分配内存"><a href="#在堆上分配内存" class="headerlink" title="在堆上分配内存"></a>在堆上分配内存</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>进程可以通过增加堆的大小来分配内存，所谓的堆是一段长度可变的连续虚拟内存，其位于进程的未初始化数据段和栈段之间（始于未初始化数据段末尾），从低地址向高地址增长，通常将堆的当前内存边界称为“program break”。最初时program break位于未初始化数据段末尾，与&amp;end位置相同。在program break位置抬升后，程序可以访问新分配的区域内的任何内存地址，但此时物理内存页还没有分配，内核会在进程首次访问这些虚拟内存地址时自动分配物理内存页</p>
+<h2 id="函数介绍"><a href="#函数介绍" class="headerlink" title="函数介绍"></a>函数介绍</h2><h3 id="malloc-和free"><a href="#malloc-和free" class="headerlink" title="malloc()和free()"></a>malloc()和free()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">brk</span><span class="params">(<span class="keyword">void</span> *end_data_segment)</span></span>;    <span class="comment">//成功返回0出错返回-1</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">sbrk</span><span class="params">(<span class="keyword">intptr_t</span> increment)</span></span>;    <span class="comment">//成功返回新分配的内存地址，出错返回-1</span></span><br></pre></td></tr></table></figure>
+<p>系统调用brk()会将program break设置为参数end_data_segment所指定的位置。<strong>由于虚拟内存以页为单位进行内存分配，end_data_segment实际会四舍五入到下一个内存页的边界处</strong></p>
+<p>调用sbrk()会将program break在原有地址上增加参数increment的大小（intptr_t 即整数数据类型），如果program break增加（即调用成功），返回新分配的内存起始位置的指针。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">malloc</span><span class="params">(<span class="keyword">size_t</span> size)</span></span>;    <span class="comment">//成功返回分配的内存起始地址，出错返回NULL</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">free</span><span class="params">(<span class="keyword">void</span> *ptr)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>malloc()返回类型为void*类型，故可以赋值给任意类型的C指针。其分配的内存块采用字节对齐方式（可参考本人<a href="http://www.chenghuili.cn/2017/12/22/%E6%95%B0%E6%8D%AE%E5%AF%B9%E9%BD%90/">另一篇博客</a>），这样可以提高内存访问效率。</p>
+<p>free()函数释放ptr参数所指向的内存块，该参数可以是malloc(),calloc(),realloc()函数返回的地址。一般情况下free()并不会降低program break的位置，而是将这块内存添加到空闲内存列表中，供后续的内存分配函数使用。如此之举，原因有三：</p>
+<ul>
+<li>一般释放的内存位于堆的中间位置，而非堆的顶部（言外之意，如果释放堆顶的内存，program break位置会下降），所以不可能改变program break的位置。</li>
+<li>可以最大限度的减少程序调用brk()的次数，虽然系统调用开销小，但也比较可观（因为只用调用brk才可能改变program break 的位置）</li>
+<li>没有必要，对分配大量内存的程序没什么帮助，因为它们通常是持有已分配内存或是反复释放和重新分配内存，而非释放所有内存后再持续运行一段时间。<br><strong>绝对不允许对ptr所指的空间释放大于一次</strong>，否则会引发未知错误，也就是说，鬼知道会发生什么…</li>
+</ul>
+<h3 id="malloc-和free-的实现"><a href="#malloc-和free-的实现" class="headerlink" title="malloc()和free()的实现"></a>malloc()和free()的实现</h3><p>调用malloc()时，它首先会扫描之前由free()所释放的空闲内存列表，以求找到尺寸大于或等于要求的一块内存块。如果一个内存块的大小与要求的相当，则将其返回给调用者，如果太大，那么将其分割，将大小相当的一块返回给调用者的同时，把剩余的那块保留在空闲内存列表中。<br>如果找不到足够大的空闲内存块，那么malloc()会调用sbrk()以分配更多的内存。为减少对sbrk()的调用次数，malloc()不会只是严格按所需字节数来分配内存，而是以虚存页的大小的数倍来增加program break，并将超出的部分添加到空闲内存列表中。</p>
+<p>当free()将空闲内存块置于空闲列表之上时，是如何知道空闲内存块的大小的呢？其实，当malloc()分配内存块时，会额外分配几个字节来记录这块内存的大小的整数值。该值位于内存块的起始处，而实际返回给调用者的内存地址位于该记录之后<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/malloc.png" alt><br>当将内存块置于空闲内存列表时，free会使用内存块本身的空间来存放列表指针，将自身添加到列表中<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E7%A9%BA%E9%97%B2%E5%88%97%E8%A1%A8.png" alt><br><strong>在编写长期运行的程序时，如果需要反复分配内存，应当确保释放所有已使用完毕的内存，否则堆将稳步增长，直至抵达可用虚拟内存的上限，此后的分配内存操作将以失败告终，这种情况被称为“内存泄漏”</strong></p>
+<h3 id="calloc-和realloc"><a href="#calloc-和realloc" class="headerlink" title="calloc()和realloc()"></a>calloc()和realloc()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">calloc</span><span class="params">(<span class="keyword">size_t</span> numitems,<span class="keyword">size_t</span> size)</span></span>;   </span><br><span class="line"> <span class="comment">//成功返回内存起始位置地址，出错返回NULL</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">realloc</span><span class="params">(<span class="keyword">void</span> *ptr,<span class="keyword">size_t</span> size)</span></span>;</span><br><span class="line"><span class="comment">//成功返回内存起始位置地址，出错返回NULL</span></span><br></pre></td></tr></table></figure>
+<p>函数calloc()用于给一组相同对象分配内存，参数numitems指定对象数量，size指定每个对象的大小，<strong>与malloc()不同，calloc会将已分配的内存初始化为0</strong><br>使用范例：<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct &#123;...&#125;myStruct;</span><br><span class="line">struct myStruct *p;</span><br><span class="line">p = calloc(<span class="number">1000</span>,sizeof(struct myStruct));</span><br><span class="line"><span class="keyword">if</span>(p == NULL)</span><br><span class="line">    <span class="keyword">exit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure></p>
+<p>realloc() 函数用来调整（通常是增加）一块内存的大小，而这块内存应是之前由malloc包中的函数所分配的。参数ptr指向需要调整的内存块的指针，参数size指定所需调整大小的期望值。调用成功返回调整后的内存块的地址，与调用前的内存地址可能不同。<strong>若realloc()增加了已分配内存块的大小，则不会对额外分配的字节进行初始化</strong><br><strong>使用calloc()和realloc()分配的内存应该用free()来释放</strong></p>
+<blockquote>
+<p>调用realloc(ptr,0)等效于在free(ptr)之后调用malloc(0)，若ptr为NULL，则realloc(NULL,size)相当于调用malloc(size)</p>
+</blockquote>
+<p><strong>通常情况下，当增大已分配内存时，realloc()会试图去合并在空闲列表中紧随其后且大小满足要求的内存块。若原内存块位于堆的顶部，那么realloc()将对堆空间进行扩展(这两种情况原地址与新地址相同)。如果位于堆的中间，且紧邻的内存块大小不足，realloc()会分配一块新内存，并将原有数据复制到新内存块中，（原地址与新地址不同，也是最常见情况），此举占用大量CPU资源,应尽量避免使用realloc()</strong></p>
+<h1 id="在堆栈上分配内存"><a href="#在堆栈上分配内存" class="headerlink" title="在堆栈上分配内存"></a>在堆栈上分配内存</h1><p>和malloc()函数包中的函数功能一样，alloca()也可以动态的分配内存，不顾不是从堆上分配，而是从堆栈上通过增加栈帧的大小来分配。因调用函数的栈帧位于堆栈的顶部，故帧的上方还有扩展空间，只需修改堆栈指针值即可。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;alloca.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">alloca</span><span class="params">(<span class="keyword">size_t</span> size)</span></span>;    <span class="comment">//返回已分配内存块的指针</span></span><br></pre></td></tr></table></figure></p>
+<p>参数size指定在堆栈上分配的字节数。不需要（也不能）调用free()来释放由alloca()分配的内存，也不可能用realloc()调整alloca()分配的大小（一个堆操作，一个栈操作，这两根本就在不同的世界嘛！）。<br>调用alloca()造成堆栈溢出时程序无法预知，且不会收到一个NULL返回值（可能会收到一个SIGSEGV信号）。<strong>不能在一个函数的参数列表中调用alloca()</strong>,这会使alloca()分配的堆栈空间出现在函数参数的空间内（函数参数位于栈帧内的固定位置）<br><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span>(<span class="title">x</span></span>,alloca(size),z);    <span class="regexp">//</span>WRONG!!!!</span><br><span class="line">应该这样写：</span><br><span class="line">void *y;</span><br><span class="line">y = alloca(size);</span><br><span class="line"><span class="function"><span class="keyword">fun</span>(<span class="title">x</span></span>,y,z);</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>使用alloca()来分配内存相对于malloc()有一定优势：1.alloca()分配内存的速度要快于malloc()，因为编译器将alloca()作为内联代码处理，并通过直接调整堆栈指针来实现，并且alloca()也不需要维护空闲内存列表。2.由alloca()分配的内存随栈帧的移除而自动释放</p>
+</blockquote>
+<hr>
+<p>参考资料：<br>《linux/UNIX系统编程手册》(tlpi)</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/内存分配/" rel="tag"># 内存分配</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/31/浅谈树和二叉树(二)/" rel="next" title="浅谈树和二叉树(二)">
+                <i class="fa fa-chevron-left"></i> 浅谈树和二叉树(二)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/01/选择排序/" rel="prev" title="选择排序">
+                选择排序 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#在堆上分配内存"><span class="nav-number">1.</span> <span class="nav-text">在堆上分配内存</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数介绍"><span class="nav-number">1.2.</span> <span class="nav-text">函数介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#malloc-和free"><span class="nav-number">1.2.1.</span> <span class="nav-text">malloc()和free()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#malloc-和free-的实现"><span class="nav-number">1.2.2.</span> <span class="nav-text">malloc()和free()的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#calloc-和realloc"><span class="nav-number">1.2.3.</span> <span class="nav-text">calloc()和realloc()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在堆栈上分配内存"><span class="nav-number">2.</span> <span class="nav-text">在堆栈上分配内存</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

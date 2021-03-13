@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="TCP/IP,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述未来数年内，因特网肯定会从IPV4过渡到IPV6，在这个过渡阶段，基于IPV4的现有应用程序应该能够和基于IPV6的全新应用程序协同工作。也就是说，使用IPV6/IPV4的客户端可以和使用IPV4/IPV6的服务器通信。这也就意味着这些主机都运行着双栈，即一个IPV4协议栈和一个IPV6协议栈。">
+<meta name="keywords" content="TCP&#x2F;IP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IPV4与IPV6的互操作">
+<meta property="og:url" content="www.chenghuili.cn/2018/06/02/IPV4与IPV6的互操作/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="概述未来数年内，因特网肯定会从IPV4过渡到IPV6，在这个过渡阶段，基于IPV4的现有应用程序应该能够和基于IPV6的全新应用程序协同工作。也就是说，使用IPV6/IPV4的客户端可以和使用IPV4/IPV6的服务器通信。这也就意味着这些主机都运行着双栈，即一个IPV4协议栈和一个IPV6协议栈。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4775.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4776.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4777.jpg">
+<meta property="og:updated_time" content="2019-06-27T07:50:17.568Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IPV4与IPV6的互操作">
+<meta name="twitter:description" content="概述未来数年内，因特网肯定会从IPV4过渡到IPV6，在这个过渡阶段，基于IPV4的现有应用程序应该能够和基于IPV6的全新应用程序协同工作。也就是说，使用IPV6/IPV4的客户端可以和使用IPV4/IPV6的服务器通信。这也就意味着这些主机都运行着双栈，即一个IPV4协议栈和一个IPV6协议栈。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4775.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/06/02/IPV4与IPV6的互操作/">
+
+
+
+
+
+  <title>IPV4与IPV6的互操作 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/06/02/IPV4与IPV6的互操作/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">IPV4与IPV6的互操作</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-02T19:24:24+08:00">
+                2018-06-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/06/02/IPV4与IPV6的互操作/" class="leancloud_visitors" data-flag-title="IPV4与IPV6的互操作">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>未来数年内，因特网肯定会从IPV4过渡到IPV6，在这个过渡阶段，基于IPV4的现有应用程序应该能够和基于IPV6的全新应用程序协同工作。也就是说，使用IPV6/IPV4的客户端可以和使用IPV4/IPV6的服务器通信。这也就意味着这些主机都运行着双栈，即一个IPV4协议栈和一个IPV6协议栈。<br><a id="more"></a></p>
+<h1 id="IPV4客户与IPV6服务器"><a href="#IPV4客户与IPV6服务器" class="headerlink" title="IPV4客户与IPV6服务器"></a>IPV4客户与IPV6服务器</h1><p>双栈主机的一个特性是其上的服务器既可以处理IPV4客户，也可以处理IPV6客户。基本技术是<strong>通过使用IPV4映射的IPV6地址实现</strong>。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4775.jpg" alt><br>现假设客户与服务器处于同一个以太网上。IPV4客户主机在一个IPV4数据报中载送SYN，IPV6客户主机在一个IPV6数据报中载送SYN。接收数据链路通过查看以太网类型字段把每个帧传送给相应的IP模块。IPV4模块结合其上的TCP模块检测到IPV4数据报的目的端口对应一个IPV6套接字，于是把数据报IPV4首部中的源IPV4地址转换为等价的IPV4映射的IPV6地址。当accept系统调用把这个已经接受的IPV4客户连接返回给服务器进程时，这个映射后的地址将作为客户的IPV6地址返回到服务器的IPV6套接字。该连接上其余的数据报同样都是IPV4数据报。<br>对于IPV6数据报不需要做任何改动直接返回给应用进程。</p>
+<p>总结下IPv4客户与IPv6服务器通信的步骤：</p>
+<ol>
+<li>IPv6服务器启动后创建一个IPv6的监听套接字，假定服务器把捆绑地址绑定到该套接字。</li>
+<li>IPv4客户调用gethostbyname找到服务器主机的一个A记录。（服务器主机既有一个A记录，也有一个AAAA记录，因为它同时支持IPv4和IPv6）。</li>
+<li>客户调用connect发送一个IPv4 SYN到服务器主机。</li>
+<li>服务器主机接收这个目的地为IPv6监听套接字的IPv4 SYN/ACK，设置一个标志指示本连接应使用IPv4映射的IPv6地址，然后响应一个IPv4 SYN/ACK。该连接建立后，由accept返回给服务器的地址就是这个IPv4映射的IPv6地址。</li>
+<li>当服务器主机往这个IPv4映射的IPv6地址发送TCP分节时，其IP栈产生目的地址为所映射IPv4地址的IPv4载送数据报。因此，客户和服务器之间的所有通信都使用IPv4载送数据报。</li>
+<li>除非服务器显式的检查这个IPv6地址是不是一个IPv4映射的IPv6地址，否则它永远不知道在和一个IPv4客户通信。同样客户也不知道它在和一个IPv6服务器通信。</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4776.jpg" alt><br>一般来说，<strong>任何一个IPv4地址都可以表示成一个IPv6地址，但是一个IPv6地址不可以表示成一个IPv4地址。</strong></p>
+<p>大多数双栈协议的主机都使用以下规则：</p>
+<ol>
+<li>IPv4监听套接字只能接受来自IPv4客户的外来连接</li>
+<li>如果服务器绑定了通配地址的IPv6监听套接字，而且套接字未设置IPV6_V6ONLY选项，那么该套接字即可以接受来自IPv4的客户的外来连接，也能接受来自IPv6的客户的外来连接 。</li>
+<li>如果服务器有一个IPv6监听套接字，而且绑定在其上的是除IPv4映射的IPv6地址之外的某个非通配IPv6地址，或者绑定在其上的是通配地址，不过设置了IPV6_V6ONLY套接字选项，那么该套接字只能接受来自IPv6的客户的外来连接。</li>
+</ol>
+<h1 id="IPv6客户与IPv4服务器"><a href="#IPv6客户与IPv4服务器" class="headerlink" title="IPv6客户与IPv4服务器"></a>IPv6客户与IPv4服务器</h1><ol>
+<li>一个IPv4服务器在只支持IPv4的一个主机上启动后创建一个IPv4的监听套接字 。</li>
+<li>IPv6客户启动后调用getaddrinfo单纯的查找IPv6地址。既然只支持IPv4的那个服务器主机只有A记录，则客户收到的是IPv4映射的IPv6地址。</li>
+<li>IPv6客户在作为函数参数的IPv6套接字地址结构中设置这个IPv4映射的IPv6地址后调用connect，内核检测到这个映射地址后自动发送一个IPv4 SYN到服务器 。</li>
+<li>服务器响应一个IPv4 SYN／ACK，于是通过使用IPv4数据报建立连接 。</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/f45ade71e25e76eb174f0cc3d15c506cae3b6a77/%E7%BD%91%E7%BB%9C/IMG_4777.jpg" alt></p>
+<hr>
+<hr>
+<p>总结下：<br><em>IPv4客户与IPv6服务器通信<br>IPv4客户通过找到服务器的一个A记录，调用connect发送一个IPv4的SYN到服务器主机，服务器主机接受这个IPv4的SYN，设置标志指示本连接应使用IPv4映射的IPv6地址，然后响应一个IPv4的ACK，由accept返回给服务器应用进程的是这个IPv4映射的IPv6地址。服务器向这个IPv4映射的IPv6地址发送TCP分节时，其IP栈产生目的地址为所映射IPv4地址的IPv4载送数据报 。于是通过IPv4数据报建立连接。</em></p>
+<p><em>IPv6客户与IPv4服务器通信<br>IPv6客户通过查找服务器主机的IPv6地址，返回的是服务器主机IPv4映射的IPv6地址，客户将该映射的IPv6地址填入connect发起连接，内核检测到该映射地址后自动发送一个IPv4 SYN到服务器 。服务器响应IPv4的 SYN和ACK。连接于是通过IPv4数据报建立。</em><br><img src alt></p>
+<hr>
+<p>参考资料：<br>《UNIX网络编程 3th 卷一》（UNP）</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/TCP-IP/" rel="tag"># TCP/IP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/31/文件系统的实现方法/" rel="next" title="文件系统的实现方法">
+                <i class="fa fa-chevron-left"></i> 文件系统的实现方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/10/初探zookeeper与dubbo/" rel="prev" title="初探zookeeper与dubbo">
+                初探zookeeper与dubbo <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IPV4客户与IPV6服务器"><span class="nav-number">2.</span> <span class="nav-text">IPV4客户与IPV6服务器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IPv6客户与IPv4服务器"><span class="nav-number">3.</span> <span class="nav-text">IPv6客户与IPv4服务器</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="版本控制,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近新的项目需要抛弃svn使用git，之前对git一脸懵逼仅限于会拼写，趁这几天不算忙学习记录下。">
+<meta name="keywords" content="版本控制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git踩坑指南">
+<meta property="og:url" content="www.chenghuili.cn/2019/12/19/Git踩坑指南/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="最近新的项目需要抛弃svn使用git，之前对git一脸懵逼仅限于会拼写，趁这几天不算忙学习记录下。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/svn%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/git%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1219212224.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1219213738.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1219215155.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/ba8cb74514ecf3502b451740fb06a9483c45654d/git/1222204006.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/ba8cb74514ecf3502b451740fb06a9483c45654d/git/1222204319.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220202229.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220202606.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220203239.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220204127.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220204434.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220205100.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220205809.png">
+<meta property="og:updated_time" content="2019-12-27T13:16:29.251Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Git踩坑指南">
+<meta name="twitter:description" content="最近新的项目需要抛弃svn使用git，之前对git一脸懵逼仅限于会拼写，趁这几天不算忙学习记录下。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/svn%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2019/12/19/Git踩坑指南/">
+
+
+
+
+
+  <title>Git踩坑指南 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2019/12/19/Git踩坑指南/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Git踩坑指南</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-12-19T19:52:07+08:00">
+                2019-12-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工具/" itemprop="url" rel="index">
+                    <span itemprop="name">工具</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2019/12/19/Git踩坑指南/" class="leancloud_visitors" data-flag-title="Git踩坑指南">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近新的项目需要抛弃svn使用git，之前对git一脸懵逼仅限于会拼写，趁这几天不算忙学习记录下。<br><a id="more"></a></p>
+<h1 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h1><p><code>git clone url</code>clone项目代码到本地<br><code>git add file_name</code>添加修改的文件到暂存区<br><code>git commit -m &quot;command&quot;</code>将暂存区的修改提交到本地仓库<br><code>git push origin branch_name</code>将本地仓库的某个分支更新到远程仓库<br><code>git status</code>查看当前所在分支的状态<br><code>git reset --soft/--hard/--mixed commit_id</code>回退到某次提交的状态（多人协作开发不建议使用）<br><code>git revert commit_id</code>回退某次提交的修改，会产生一个新的commit，不改变原来的commit记录<br><code>git branch branch_name</code>新建一个分支<br><code>git checkout branch_name</code>切换到某个分支<br><code>git branch -b branch_name</code>创建并切换到该分支<br><code>git merge branch_name</code>将某分支合并到该分支<br><code>git branch -a</code>查看本地和远程的所有分支<br><code>git branch -d branch_name</code>删除本地分支<br><code>git push origin -d branch_name</code>删除远程分支<br><code>git log --oneline --decorate --graph --all</code>查看分支详细信息<br><code>git submodule init</code>第一次clone带有子模块的项目时需要进行子模块配置的初始化<br><code>git submodule update --remote</code>更新子模块</p>
+<h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><p>git与svn最大的一个区别就是对于提交文件的存储方式，对于每次提交，svn是存储文件的差异，而git是存储文件的快照，用官网的两张图可以更清楚的看出区别：<br>svn：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/svn%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F.png" alt="svn存储方式"><br>git：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/git%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F.png" alt="git存储方式"></p>
+<p>这样子做有啥子好处呢？官网有具体的说明，但是我也没有理解到底有啥好处…感受就是对于同一份项目代码，从svn上clone下来花的时间比git clone下来的时间慢的多，不知道是我司对git服务器有加速？还是这种存储方式导致的。</p>
+<p>首先需要明确的一个概念是：对于一个repository，可以说有两个存储仓库，一个在本地，一个在远程服务器，每次修改的都是本地存储，只有在执行push指令之后才会将本地的存储推（更新）到远程存储，所以只要不push，什么add，commit可劲造，不会影响到别人，造完记得reset还原就行。</p>
+<p>还有一个概念也要提一下，每次修改文件到提交到本地仓库，其实这个文件经历了三个存储区域（三种状态）</p>
+<ul>
+<li>第一个是工作区域，就是存储原始文件的地方，对代码的各种修改都是在这个区域下完成的。</li>
+<li>第二个是暂存区域，修改之后必须要经过暂存区域才能将文件存储到本地仓库，可以将其理解为一个缓冲。修改之后执行git add指令就会将指定文件放到暂存区域了，我一般直接在根目录下<code>git add .</code>它会递归的在这个目录下寻找所有修改过的文件都添加到暂存区域。当然如果有一些文件你不想提交就要挨个add了。官方的说法这个区域是确实存在的，格式是一个文件，里面存放了add过（待提交）的文件列表信息，默认这个文件存放在git仓库目录中。</li>
+<li>第三个就是你的本地仓库，<code>git commit</code>就可以将文件从暂存区域提交到本地存储了。只有将改动提交到本地存储，你才能推到远程仓库。</li>
+</ul>
+<p>还有一个非常实用的命令<code>git status</code>，可以很清楚的看出你当前的文件都处于一个什么状态，当然你从修改完到add到commit到push一气呵成，这个指令确实没什么用。但是如果一气呵不成流程被中断了，这个指令就比较有意思了。</p>
+<ol>
+<li><p>当新建了一个test.txt文件，没有add时，运行<code>git status</code>，git bash会显示：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1219212224.png" alt="1219212224"><br>untracked表示没有跟踪，对于跟踪的概念官网有官方的解释，可以简单粗暴的认为，没有跟踪的就是新建的文件。这时候咋整，add-&gt;commit-&gt;push。大白话来说就是这个文件git在现有仓库中没有见过，啥叫见过，clone之后git会在本地建一个数据库，以文件内容或目录结构进行一个SHA-1校验和的计算，将这个值作为该文件的索引。</p>
+</li>
+<li><p>当改了文件内容，保存了没有add，或者add了没有commit，此时<code>git status</code>显示：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1219213738.png" alt="1219213738"><br>changes not staged for commit就是改了没有add到暂存区域，add-&gt;commit-&gt;push。<br>changes to be committed就是说已经add到暂存区域，可以commit提交了，commit-&gt;push。<br>如果你不想提交add过的修改咋整，看括号<code>git restore --staged</code>，改过但是没有add，<code>git restore</code>会将这个文件还原成上一次提交的状态，相当于一键ctrl-z，git提示简直不能太友好啊有木有！</p>
+</li>
+<li><p>当commit了但是没有push，<code>git status</code>显示：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1219215155.png" alt="1219215155"><br>很直观，有一次提交，还没有push到远程。</p>
+</li>
+</ol>
+<p>那如果说这个时候你提交过的有问题，或者还需要加东西要撤销本次提交，不想push到远程祸害别人，不要慌，<code>git reset</code>了解下。有三个常用参数</p>
+<ul>
+<li><code>--soft</code>只是撤销这次commit，改过的内容不会恢复，这个时候可以重新<code>git commit</code>进行提交，或者在这个代码基础上新增改动，然后add-&gt;commit。</li>
+<li><code>--hard</code>就比较粗暴了，直接将代码完全还原成上一次提交的状态</li>
+<li><code>mixed</code>这是默认的参数，作用是移除暂存区，相当于到达add之前的状态，同样不会改变工作目录的代码。<br>但是在和别人合作完成项目的时候不建议使用<code>git reset</code>，因为它会使HEAD指针前移，覆盖之后的提交记录。直白的说就是会删除提交历史记录，这样会导致一个严重的问题，没办法恢复撤销。常用的撤销是<code>git revert</code>，它会撤销你做出的某次修改，但是会将这次撤销作为一个commit进行提交，而不改变提交历史记录，常用的参数：</li>
+<li><code>git revert HEAD</code>撤销上一次的提交</li>
+<li><code>git revert commit_id</code>撤销某次的提交<br>实验中发现，如果是跳跃的撤销连续增加的情况就会有冲突问题需要解决，比如说我这里提交了3次，分别是增加了1111，2222，3333：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/ba8cb74514ecf3502b451740fb06a9483c45654d/git/1222204006.png" alt="12222204006"><br>如果我想撤销2222的那次提交，执行<code>git revert 2e6b6e430cfaf444e2a6b6191bf8b9a72292dd96</code>就会出现冲突提示：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/ba8cb74514ecf3502b451740fb06a9483c45654d/git/1222204319.png" alt="1222204221"><br>需要手动处理下冲突。<br>当涉及文件重命名的时候也比较有意思，如果直接在工作目录下进行重命名，<code>git status</code>会发现状态是将原有文件删除，新增一个untracked未跟踪文件，你需要将改名前的文件和改名后的文件都add一下然后commit。这里有一个更好的方式是直接在git命令行中运行<code>git mv old_filename new_filename</code>，再<code>git status</code>就会发现状态是renamed，直接add该文件就可以提交了。</li>
+</ul>
+<h1 id="分支"><a href="#分支" class="headerlink" title="分支"></a>分支</h1><p>不管你信不信，官网是吹爆了git的分支机制，称为git的必杀技。嗯，我还没有悟透，除了拉分支秒完成以外还没有发现它牛X在哪。<br>当从远程clone下来之后，git会在本地创建一个master分支，跟踪到远程仓库的master分支（origin/master），可以直接在master分支上进行开发，但是git不建议这样，因为master一般存放的是稳定可交付的一些提交，多人协作开发时你提交了一些测试状态的代码到master上对别人会有影响。建议自己在本地拉一个dev分支，在这个分支上进行开发，开发完成测试ok之后再merge到本地仓库的mater中然后push到远程仓库。这里其实不需要提交dev分支到远程仓库，这个前提是你有一个环境可以拉取到本地dev分支的代码并且可以运行。</p>
+<p>当创建一个分支时，git只是创建了一个可以移动的新的指针，使用<code>git branch branch_name</code>即可创建新的分支，此时新分支与master分支的指针均指向当前最后一次提交对象的位置，git还有一个特殊的指针HEAD来区分此时在哪一个分支<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220202229.png" alt="1220202229"><br>如果想切换到某个分支，需要执行<code>git checkout branch_name</code>，这样HEAD指针就会指向你切换到的分支。也可以执行<code>git branch -b branch_name</code>，它表示创建一个分支并且切换到该分支上去，相当于<code>git branch branch_name</code>+<code>git checkout branch_name</code>。切换到指定分支后，所有代码修改提交都是在该分支上，每次提交当前分支指针后移，其他分支指针不动<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220202606.png" alt="1220202606"><br>当开发完成自测通过后需要合并到master分支上，此时需要切换当前分支到master，然后执行<code>git merge branch_name</code>，这样就会把branch_name分支的改动合并到当前所在的master分支上，合并时可能会发生冲突，因为可能你某个时候改过master分支<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220203239.png" alt="1220203239"><br>此时需要手动去处理冲突，处理完成后就是add-&gt;commit-&gt;push了。但是！但是！细想下这里是不是也可能有问题，你一直都在修改本地仓库，可能在你上一次<code>git pull</code>之后，别人又提交过新的修改到远程master分支了，这个时候怎么可能正常push。对头，这里我专门做了这个case的测试，发现git会报错<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220204127.png" alt="1220204127"><br>黄色提示的很明白了，有人更新过，你需要再执行一次<code>git pull</code>才能正常push。但是！但是！这里是不是也可能会有冲突，别人提交的和你将要提交的冲突，pull会失败。亲测后发现是的，再手动解决冲突就好了<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220204434.png" alt="1220204434"><br>所以要留心每次执行命令后的提示，有没有fail这个字眼。我用的vscode开发，发现安装各种git插件后简直香的飞起，冲突显示的也很友好，尤其是git提交日志，当前在哪个分支，远程分支是什么状态，改了哪些文件，分支合并状态一目了然。奥，还有add-&gt;commit也很方便。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220205100.png" alt="1220205100"><br>需要知道当前分支的提交状态或者树结构的话可以执行<code>git log --oneline --decorate --graph --all</code>，结果大概长这样(vscode真香)<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/git/1220205809.png" alt="1220205809"><br>使用<code>git branch</code>可以看到当前的本地仓库都有哪些分支，我一般还会加<code>-a</code>参数，这样可以看到本地和远程的所有分支，<code>--merged</code>参数表示哪些分支已经合并了，对应的就有没有合并分支的参数<code>--no-merged</code>，合并过的分支如果不在需要就可以删除，删除本地仓库的分支使用<code>git branch -d branch_name</code>，<code>-D</code>是强制删除，一般没有合并过的分支是不允许删除的，如果某个分支你只是用来测试或者瞎搞确实没什么用了就可以使用<code>-D</code>进行删除。删除远程仓库的分支使用<code>git push origin -d branch_name</code></p>
+<h1 id="子模块"><a href="#子模块" class="headerlink" title="子模块"></a>子模块</h1><p>在项目中需要使用第三方库，这个库也是一个独立的项目时，最好在项目中引入git子模块。<br>在一个已经存在的git项目中需要添加子模块时，使用<code>git submodule add project_url</code>。此时会在当前目录下新建一个.gitmodules的配置文件，存储了拉取的项目存储到本地的目录与该项目的url地址的映射。</p>
+<p>克隆含有子模块的项目时默认会包含该子模块目录，但是目录下没有任何文件，需要cd到子模块目录下执行<code>git submodule init</code>来初始化本地配置文件，然后<code>git submodule update</code>进行抓取子模块的所有数据。也有一种更简洁的方式，在clone时加入<code>--recursive</code>参数就可以省略后面的两步，它会自动初始化并更新仓库中的每一个子模块。</p>
+<p>在使用子模块时，比较好的一个方法是将自己视为对子模块的代码只有只读权限，这也很好理解，你的项目引入的是一个第三方库，项目不止你一个人在维护，你改了第三方库对别人肯定会有影响。<br>我们当前的项目用到的子模块也是自己开发的，所以我一般在子模块初始化完成后的日常开发中只跑几条指令：</p>
+<ul>
+<li><code>git submodule update --remote</code>更新子模块</li>
+<li><code>git status</code>查看状态</li>
+<li><code>git add filename</code></li>
+<li><code>git commit -m &quot;comand&quot;</code></li>
+<li><code>git push origin master</code><br>push的时候如果有冲突了就<code>git fetch</code>-&gt;<code>git merge origin/master</code>一下，或者直接<code>git pull</code>。在这里我的位置是子模块对应的项目的开发者，当然要对子模块进行读写，如果你只是引入一个第三方库，就只需要第一条指令就可以，不要独自修改子模块的代码！</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/版本控制/" rel="tag"># 版本控制</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/11/linux程序调试工具总结/" rel="next" title="linux程序调试工具总结">
+                <i class="fa fa-chevron-left"></i> linux程序调试工具总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/06/21/emscripten-protobuf踩坑之旅/" rel="prev" title="emscripten & protobuf踩坑之旅">
+                emscripten & protobuf踩坑之旅 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#常用命令"><span class="nav-number">1.</span> <span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基础"><span class="nav-number">2.</span> <span class="nav-text">基础</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分支"><span class="nav-number">3.</span> <span class="nav-text">分支</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子模块"><span class="nav-number">4.</span> <span class="nav-text">子模块</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

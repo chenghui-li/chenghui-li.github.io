@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="STL,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="目录：  vector动态连续数组.大小可变使用的内存是连续的.所以支持随机存取在末端的增删操作性能好,但是中间的插入删除性能差. deque双头队列;可在头部和尾部插入删除;使用的内存是不连续的, 但是一段一段的;随机存取时间复杂度为o(1);头尾插入删除基本也是o(1);插入删除任意元素是o(n);     list双向链表插入删除元素常量时间;增加, 删除, 移动元素, 不会使得其他元素的迭">
+<meta name="keywords" content="STL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="STL常用容器归纳————序列容器">
+<meta property="og:url" content="www.chenghuili.cn/2017/12/08/STL常用容器归纳——序列容器/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="目录：  vector动态连续数组.大小可变使用的内存是连续的.所以支持随机存取在末端的增删操作性能好,但是中间的插入删除性能差. deque双头队列;可在头部和尾部插入删除;使用的内存是不连续的, 但是一段一段的;随机存取时间复杂度为o(1);头尾插入删除基本也是o(1);插入删除任意元素是o(n);     list双向链表插入删除元素常量时间;增加, 删除, 移动元素, 不会使得其他元素的迭">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-06-27T07:52:08.810Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="STL常用容器归纳————序列容器">
+<meta name="twitter:description" content="目录：  vector动态连续数组.大小可变使用的内存是连续的.所以支持随机存取在末端的增删操作性能好,但是中间的插入删除性能差. deque双头队列;可在头部和尾部插入删除;使用的内存是不连续的, 但是一段一段的;随机存取时间复杂度为o(1);头尾插入删除基本也是o(1);插入删除任意元素是o(n);     list双向链表插入删除元素常量时间;增加, 删除, 移动元素, 不会使得其他元素的迭">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2017/12/08/STL常用容器归纳——序列容器/">
+
+
+
+
+
+  <title>STL常用容器归纳————序列容器 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2017/12/08/STL常用容器归纳——序列容器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">STL常用容器归纳————序列容器</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-08T14:05:19+08:00">
+                2017-12-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/语言/" itemprop="url" rel="index">
+                    <span itemprop="name">语言</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/12/08/STL常用容器归纳——序列容器/" class="leancloud_visitors" data-flag-title="STL常用容器归纳————序列容器">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>目录：</p>
+<ul>
+<li><strong>vector</strong><br>动态连续数组.<br>大小可变<br>使用的内存是连续的.<br>所以支持随机存取<br>在末端的增删操作性能好,但是中间的插入删除性能差.</li>
+<li><strong>deque</strong><br>双头队列;<br>可在头部和尾部插入删除;<br>使用的内存是不连续的, 但是一段一段的;<br>随机存取时间复杂度为o(1);<br>头尾插入删除基本也是o(1);<br>插入删除任意元素是o(n);    </li>
+<li><strong>list</strong><br>双向链表<br>插入删除元素常量时间;<br>增加, 删除, 移动元素, 不会使得其他元素的迭代器失效;</li>
+</ul>
+<a id="more"></a>
+<h1 id="vector"><a href="#vector" class="headerlink" title="vector"></a>vector</h1><h4 id="头文件"><a href="#头文件" class="headerlink" title="头文件"></a>头文件</h4><p><code>#include&lt;vector&gt;</code><br><code>using namespace std;</code></p>
+<h4 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span> &lt;type_name&gt; c 		<span class="comment">//创建一个空vector</span></span><br><span class="line"><span class="built_in">vector</span> &lt;type_name&gt; c1(c2)	<span class="comment">//把vector（c2）复制给vector（c1）</span></span><br><span class="line"><span class="built_in">vector</span> &lt;type_name&gt; c(n)		<span class="comment">//创建一个vector，含有n个数据，数据均已缺省构造产生</span></span><br><span class="line"><span class="built_in">vector</span> &lt;type_name&gt; c(n,elem)	<span class="comment">//创建一个含有n个elem拷贝的vector</span></span><br></pre></td></tr></table></figure>
+<h4 id="常用成员函数"><a href="#常用成员函数" class="headerlink" title="常用成员函数"></a>常用成员函数</h4><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">c</span><span class="selector-class">.front</span>()		<span class="comment">//取第一个元素</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.back</span>()		<span class="comment">//取最后一个元素</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.begin</span>()		<span class="comment">//取首元素的地址</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.end</span>()			<span class="comment">//取尾元素的地址</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.empty</span>()		<span class="comment">//判断是否为空</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.clear</span>()		<span class="comment">//清空容器中所有数据</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.erase</span>(pos)	<span class="comment">//删除迭代器pos位置的元素，返回下一个数据的位置</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.erase</span>(beg,end)<span class="comment">//删除[beg,end)区间内的元素，返回下一个数据的位置</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.insert</span>(pos,elem)	<span class="comment">//在pos位置插入一个elem拷贝，返回新数据位置</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.insert</span>(pos,n,elem)	<span class="comment">//在pos位置插入n个elem数据。无返回值</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.push_back</span>(elem)		<span class="comment">//在尾部插入一个元素</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.pop_back</span>()			<span class="comment">//从尾部弹出一个元素</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.size</span>()				<span class="comment">//返回容器中实际数据的个数</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.capacity</span>()			<span class="comment">//返回容器的容量</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.max_size</span>() 			<span class="comment">//返回当前vector所能容纳元素数量的最大值</span></span><br><span class="line"><span class="selector-tag">c1</span><span class="selector-class">.swap</span>(c2);		<span class="comment">//将c1和c2的元素互换</span></span><br><span class="line"><span class="selector-tag">swap</span>(c1,c2);</span><br><span class="line"><span class="selector-tag">find</span>(beg,end,elem)		<span class="comment">//在指定区域内查找指定元素，找不到则返回位置end()</span></span><br></pre></td></tr></table></figure>
+<h4 id="测试程序"><a href="#测试程序" class="headerlink" title="测试程序"></a>测试程序</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line">	<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; iv(<span class="number">2</span>,<span class="number">9</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 2;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 2;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">1</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 3;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 4;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">2</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 4;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 4;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">3</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 5;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">4</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 6;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;iv.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;iv[i]&lt;&lt;<span class="string">' '</span>;		<span class="comment">//9 9 1 2 3 4</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">5</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 7;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	iv.pop_back();</span><br><span class="line">	iv.pop_back();</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 5;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::iterator ivite = find(iv.begin(),iv.end(),<span class="number">1</span>);</span><br><span class="line">	<span class="keyword">if</span>(ivite != iv.end())	</span><br><span class="line">		iv.erase(ivite);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 4;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;iv.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;iv[i]&lt;&lt;<span class="string">' '</span>;		<span class="comment">//9 9 2 3 </span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;	</span><br><span class="line">	ivite = find(iv.begin(),iv.end(),<span class="number">2</span>);</span><br><span class="line">	<span class="keyword">if</span>(ivite != iv.end())	</span><br><span class="line">		iv.insert(ivite,<span class="number">3</span>,<span class="number">7</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 7;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;iv.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;iv[i]&lt;&lt;<span class="string">' '</span>;		<span class="comment">//9 9 7 7 7 2 3</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">	iv.clear();</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 0;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;	</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h1><h4 id="头文件-1"><a href="#头文件-1" class="headerlink" title="头文件"></a>头文件</h4><p><code>#include&lt;deque&gt;</code><br><code>using namespace std;</code></p>
+<h4 id="创建-1"><a href="#创建-1" class="headerlink" title="创建"></a>创建</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">deque</span>&lt;type&gt; c;			<span class="comment">//创建空的deque</span></span><br><span class="line"><span class="built_in">deque</span>&lt;type&gt; c1(c);		<span class="comment">//把c复制给c1</span></span><br><span class="line"><span class="built_in">deque</span>&lt;type&gt; c(n);		<span class="comment">//创建n个元素的deque，数据均由缺省构造函数产生</span></span><br><span class="line"><span class="built_in">deque</span>&lt;type&gt; c(n,elem)	<span class="comment">//有n个元素数值均为elem的deque</span></span><br><span class="line">						<span class="comment">//等价于c.assign(n,elem)</span></span><br></pre></td></tr></table></figure>
+<h4 id="常用成员函数-1"><a href="#常用成员函数-1" class="headerlink" title="常用成员函数"></a>常用成员函数</h4><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">c</span><span class="selector-class">.at</span>(index);	<span class="comment">//返回索引index所指的数据，如果越界抛出错误</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.front</span>();		<span class="comment">//返回第一个数据</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.back</span>();		<span class="comment">//返回最后一个数据</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.begin</span>();		<span class="comment">//返回第一个数据的迭代器</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.end</span>();		<span class="comment">//返回最后一个数据的下一个位置的迭代器</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.push_back</span>(elem);	<span class="comment">//尾插</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.push_front</span>(elem);	<span class="comment">//头插</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.pop_back</span>();		<span class="comment">//尾删</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.pop_front</span>();		<span class="comment">//头删</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.insert</span>(pos,elem);	<span class="comment">//pos位置插入elem元素，返回新数据位置</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.insert</span>(pos,n,elem);<span class="comment">//pos位置插入n个elem元素，无返回值</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.erase</span>(pos);		<span class="comment">//删除pos位置的数据，返回下一个元素位置</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.erase</span>(begin,end)	<span class="comment">//删除[begin,end)区间内的数据，返回下一个数据的位置</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.empty</span>();			<span class="comment">//判空</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.size</span>();			<span class="comment">//返回容器中实际数据的数量</span></span><br><span class="line"><span class="selector-tag">c</span><span class="selector-class">.max_size</span>();		<span class="comment">//返回容器中最大数据的数量</span></span><br><span class="line"></span><br><span class="line"><span class="selector-tag">c1</span><span class="selector-class">.swap</span>(c2);		<span class="comment">//将c1和c2的元素互换</span></span><br><span class="line"><span class="selector-tag">swap</span>(c1,c2);</span><br><span class="line"><span class="selector-tag">find</span>(beg,end,elem)		<span class="comment">//在指定区域内查找指定元素，找不到则返回位置end()</span></span><br></pre></td></tr></table></figure>
+<h4 id="测试程序-1"><a href="#测试程序-1" class="headerlink" title="测试程序"></a>测试程序</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;deque&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	<span class="built_in">deque</span>&lt;<span class="keyword">int</span>&gt; ideq(<span class="number">20</span>,<span class="number">9</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size = "</span>&lt;&lt;ideq.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 20</span></span><br><span class="line">	<span class="comment">//现在该deque有20个元素，且初值均为9，缓冲区大小为32bytes</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;ideq.size();i++)</span><br><span class="line">		ideq[i] = i;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;ideq.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;ideq[i]&lt;&lt;<span class="string">" "</span>;		<span class="comment">//0 1 2 ... 19</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;<span class="number">3</span>;i++)</span><br><span class="line">		ideq.push_back(i);</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;ideq.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;ideq[i]&lt;&lt;<span class="string">" "</span>;		<span class="comment">//0 1 2 ... 19 0 1 2</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size = "</span>&lt;&lt;ideq.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 23</span></span><br><span class="line"></span><br><span class="line">	ideq.push_back(<span class="number">3</span>);		<span class="comment">//先配置新的缓冲区，再设妥新元素内容，更改finish状态</span></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;ideq.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;ideq[i]&lt;&lt;<span class="string">" "</span>;		<span class="comment">//0 1 2 ... 19 0 1 2 3</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size = "</span>&lt;&lt;ideq.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 24</span></span><br><span class="line"></span><br><span class="line">	ideq.push_front(<span class="number">99</span>);</span><br><span class="line">	ideq.push_front(<span class="number">98</span>);</span><br><span class="line">	ideq.push_front(<span class="number">97</span>);</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;ideq.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;ideq[i]&lt;&lt;<span class="string">" "</span>;		<span class="comment">//97 98 99 0 1 2 ... 19 0 1 2 3</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size = "</span>&lt;&lt;ideq.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 27</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">deque</span>&lt;<span class="keyword">int</span>&gt;::iterator itr;</span><br><span class="line">	itr = find(ideq.begin(),ideq.end(),<span class="number">99</span>);</span><br><span class="line">	<span class="keyword">if</span>(itr!=ideq.end())&#123;</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;*itr&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//99</span></span><br><span class="line">	&#125;</span><br><span class="line">	ideq.erase(find(ideq.begin(),ideq.end(),<span class="number">97</span>));</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;ideq.front()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//98</span></span><br><span class="line">	ideq.pop_back();</span><br><span class="line">	ideq.pop_front();</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size = "</span>&lt;&lt;ideq.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 25</span></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;ideq.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;ideq[i]&lt;&lt;<span class="string">" "</span>;		<span class="comment">// 98 99 0 1 2 ... 19 0 1 2 </span></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="list"><a href="#list" class="headerlink" title="list"></a>list</h1><h4 id="头文件-2"><a href="#头文件-2" class="headerlink" title="头文件"></a>头文件</h4><p><code>#include&lt;list&gt;</code><br><code>using namespace std;</code></p>
+<h4 id="创建-2"><a href="#创建-2" class="headerlink" title="创建"></a>创建</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">list</span>&lt;type&gt; c;			<span class="comment">//创建空的list</span></span><br><span class="line"><span class="built_in">list</span>&lt;type&gt; c1(c);		<span class="comment">//把c复制给c1</span></span><br><span class="line"><span class="built_in">list</span>&lt;type&gt; c(n);		<span class="comment">//创建n个元素的list，数据均由缺省构造函数产生</span></span><br><span class="line"><span class="built_in">list</span>&lt;type&gt; c(n,elem)	<span class="comment">//有n个元素数值均为elem的list</span></span><br></pre></td></tr></table></figure>
+<h4 id="常用成员函数-2"><a href="#常用成员函数-2" class="headerlink" title="常用成员函数"></a>常用成员函数</h4><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">c</span>.front();			<span class="comment">//返回第一个数据</span></span><br><span class="line"><span class="built_in">c</span>.back();			<span class="comment">//返回最后一个数据</span></span><br><span class="line"><span class="built_in">c</span>.begin();			<span class="comment">//返回第一个数据的迭代器</span></span><br><span class="line"><span class="built_in">c</span>.end();			<span class="comment">//返回最后一个数据的下一个位置的迭代器</span></span><br><span class="line"><span class="built_in">c</span>.push_back(elem);	<span class="comment">//尾插</span></span><br><span class="line"><span class="built_in">c</span>.push_front(elem);	<span class="comment">//头插</span></span><br><span class="line"><span class="built_in">c</span>.pop_back();		<span class="comment">//尾删</span></span><br><span class="line"><span class="built_in">c</span>.pop_front();		<span class="comment">//头删</span></span><br><span class="line"><span class="built_in">c</span>.empty();			<span class="comment">//判空</span></span><br><span class="line"><span class="built_in">c</span>.size();			<span class="comment">//返回容器中实际数据的数量</span></span><br><span class="line"><span class="built_in">c</span>.max_size();		<span class="comment">//返回容器中最大数据的数量</span></span><br><span class="line"><span class="built_in">c</span>.erase(pos);		<span class="comment">//删除pos位置的数据，返回下一个元素位置</span></span><br><span class="line"><span class="built_in">c</span>.insert(pos,elem);	<span class="comment">//pos位置插入elem元素，返回新数据位置</span></span><br><span class="line"><span class="built_in">c</span>.insert(pos,n,elem);<span class="comment">//pos位置插入n个elem元素，无返回值</span></span><br><span class="line"><span class="built_in">c</span>.erase(begin,end)	<span class="comment">//删除[begin,end)区间内的数据，返回下一个数据的位置</span></span><br><span class="line"><span class="built_in">c</span>.remove(elem) 		<span class="comment">//删除链表中指定的元素( 匹配元素全部删除)</span></span><br><span class="line"><span class="built_in">c</span>.<span class="built_in">reverse</span>() 		<span class="comment">//反转链表</span></span><br><span class="line"><span class="built_in">c</span>.<span class="built_in">sort</span>() 			<span class="comment">//对链表排序，默认升序( 可自定义回调函数 )</span></span><br><span class="line">					<span class="comment">//L1.sort( );  L1(1,3,4,4,5)</span></span><br><span class="line">					<span class="comment">//L1.sort( greater &lt;int &gt;() );  L1(5,4,4,3,1)</span></span><br><span class="line"><span class="built_in">c</span>.unique() 			<span class="comment">//删除相邻重复元素,使之只剩一个</span></span><br><span class="line"><span class="built_in">c</span>.<span class="built_in">swap</span>(c2) 			<span class="comment">//交换两个链表	</span></span><br><span class="line"><span class="built_in">find</span>(beg,end,elem)		<span class="comment">//在指定区域内查找指定元素，找不到则返回位置end()</span></span><br></pre></td></tr></table></figure>
+<h4 id="测试程序-2"><a href="#测试程序-2" class="headerlink" title="测试程序"></a>测试程序</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;list&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line">	<span class="built_in">list</span>&lt;<span class="keyword">int</span>&gt; ilist;</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size:"</span>&lt;&lt;ilist.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 0</span></span><br><span class="line">	<span class="keyword">for</span>(i = <span class="number">0</span>;i&lt;<span class="number">5</span>;i++)</span><br><span class="line">		ilist.push_back(i);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size:"</span>&lt;&lt;ilist.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 5</span></span><br><span class="line">	<span class="built_in">list</span>&lt;<span class="keyword">int</span>&gt;::iterator ite;</span><br><span class="line">	<span class="keyword">for</span>(ite = ilist.begin();ite!=ilist.end();++ite)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;*ite&lt;&lt;<span class="string">' '</span>;					<span class="comment">//0 1 2 3 4</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	</span><br><span class="line">	ite = find(ilist.begin(),ilist.end(),<span class="number">3</span>);</span><br><span class="line">	<span class="keyword">if</span>(ite!=ilist.end())</span><br><span class="line">		ilist.insert(ite,<span class="number">99</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"size:"</span>&lt;&lt;ilist.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 6</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;*ite&lt;&lt;<span class="built_in">endl</span>;						<span class="comment">//3</span></span><br><span class="line">	<span class="keyword">for</span>(ite = ilist.begin();ite!=ilist.end();++ite)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;*ite&lt;&lt;<span class="string">' '</span>;					<span class="comment">//0 1 2 99 3 4</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	ite = find(ilist.begin(),ilist.end(),<span class="number">1</span>);</span><br><span class="line">	<span class="keyword">if</span>(ite!=ilist.end())</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt; *(ilist.erase(ite))&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//2</span></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span>(ite = ilist.begin();ite!=ilist.end();++ite)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;*ite&lt;&lt;<span class="string">' '</span>;					<span class="comment">//0 2 99 3 4</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">int</span> iv[<span class="number">5</span>] = &#123;<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>&#125;;</span><br><span class="line">	<span class="built_in">list</span>&lt;<span class="keyword">int</span>&gt; ilist2(iv,iv+<span class="number">5</span>);</span><br><span class="line">	ite = find(ilist.begin(),ilist.end(),<span class="number">99</span>);</span><br><span class="line">	ilist.splice(ite,ilist2);				<span class="comment">//0 2 5 6 7 8 9 99 3 4</span></span><br><span class="line">	ilist.reverse();						<span class="comment">//4 3 99 9 8 7 6 5 2 0</span></span><br><span class="line">	ilist.sort();							<span class="comment">//0 2 3 4 5 6 7 8 9 99</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/STL/" rel="tag"># STL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/08/const成员函数/" rel="next" title="const 成员函数">
+                <i class="fa fa-chevron-left"></i> const 成员函数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/08/STL常用容器归纳——关联容器/" rel="prev" title="STL常用容器归纳——关联容器">
+                STL常用容器归纳——关联容器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#vector"><span class="nav-number">1.</span> <span class="nav-text">vector</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#头文件"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">头文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用成员函数"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">常用成员函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试程序"><span class="nav-number">1.0.0.4.</span> <span class="nav-text">测试程序</span></a></li></ol></li></ol><li class="nav-item nav-level-1"><a class="nav-link" href="#deque"><span class="nav-number">2.</span> <span class="nav-text">deque</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#头文件-1"><span class="nav-number">2.0.0.1.</span> <span class="nav-text">头文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建-1"><span class="nav-number">2.0.0.2.</span> <span class="nav-text">创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用成员函数-1"><span class="nav-number">2.0.0.3.</span> <span class="nav-text">常用成员函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试程序-1"><span class="nav-number">2.0.0.4.</span> <span class="nav-text">测试程序</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#list"><span class="nav-number">3.</span> <span class="nav-text">list</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#头文件-2"><span class="nav-number">3.0.0.1.</span> <span class="nav-text">头文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建-2"><span class="nav-number">3.0.0.2.</span> <span class="nav-text">创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用成员函数-2"><span class="nav-number">3.0.0.3.</span> <span class="nav-text">常用成员函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试程序-2"><span class="nav-number">3.0.0.4.</span> <span class="nav-text">测试程序</span></a></li></ol></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

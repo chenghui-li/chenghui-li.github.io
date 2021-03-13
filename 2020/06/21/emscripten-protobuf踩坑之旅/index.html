@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="emscripten,protobuf,JS,webAssembly,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="WebAssembly是一种运行在浏览器虚拟机中的新的机器码指令格式，简称wasm。emscripten就是可以将C/C++，JAVA等高级语言代码库编译为wasm的一种编译工具。为了能够在前端高效应用大量现存的C/C++库完成音视频，游戏，机器视觉等计算密集型的功能。简单的说，因为浏览器只能跑js代码，wasm的出现就是为了其他语言的代码也可以在浏览器里运行，emscripten就是可以将其他语">
+<meta name="keywords" content="emscripten,protobuf,JS,webAssembly">
+<meta property="og:type" content="article">
+<meta property="og:title" content="emscripten &amp; protobuf踩坑之旅">
+<meta property="og:url" content="www.chenghuili.cn/2020/06/21/emscripten-protobuf踩坑之旅/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="WebAssembly是一种运行在浏览器虚拟机中的新的机器码指令格式，简称wasm。emscripten就是可以将C/C++，JAVA等高级语言代码库编译为wasm的一种编译工具。为了能够在前端高效应用大量现存的C/C++库完成音视频，游戏，机器视觉等计算密集型的功能。简单的说，因为浏览器只能跑js代码，wasm的出现就是为了其他语言的代码也可以在浏览器里运行，emscripten就是可以将其他语">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2020-06-21T03:33:28.810Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="emscripten &amp; protobuf踩坑之旅">
+<meta name="twitter:description" content="WebAssembly是一种运行在浏览器虚拟机中的新的机器码指令格式，简称wasm。emscripten就是可以将C/C++，JAVA等高级语言代码库编译为wasm的一种编译工具。为了能够在前端高效应用大量现存的C/C++库完成音视频，游戏，机器视觉等计算密集型的功能。简单的说，因为浏览器只能跑js代码，wasm的出现就是为了其他语言的代码也可以在浏览器里运行，emscripten就是可以将其他语">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2020/06/21/emscripten-protobuf踩坑之旅/">
+
+
+
+
+
+  <title>emscripten & protobuf踩坑之旅 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2020/06/21/emscripten-protobuf踩坑之旅/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">emscripten & protobuf踩坑之旅</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-06-21T11:23:34+08:00">
+                2020-06-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工具/" itemprop="url" rel="index">
+                    <span itemprop="name">工具</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2020/06/21/emscripten-protobuf踩坑之旅/" class="leancloud_visitors" data-flag-title="emscripten & protobuf踩坑之旅">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>WebAssembly是一种运行在浏览器虚拟机中的新的机器码指令格式，简称wasm。emscripten就是可以将C/C++，JAVA等高级语言代码库编译为wasm的一种编译工具。为了能够在前端高效应用大量现存的C/C++库完成音视频，游戏，机器视觉等计算密集型的功能。简单的说，<strong>因为浏览器只能跑js代码，wasm的出现就是为了其他语言的代码也可以在浏览器里运行，emscripten就是可以将其他语言编译成wasm的编译工具。</strong><br><a id="more"></a><br>之前接到一个需求，将服务器的一部分逻辑放到客户端，但是这部分代码有涉及使用protobuf。于是在emcc编译时要链接到对应的lib库，而之前用make编译好的libprotobuf并不能用。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>这里说下处理方式:</p>
+<ol>
+<li><p>找到protobuf源码包用emscripten编译，不要直接用protobuf官方github的源码包！网上看到3.9.1有一个人为emscripten加了patch，我用的这个。这一步是为了编译出emcc可以链接的libprotobuf和include头文件。<a href="https://github.com/emscripten-core/emscripten/issues/9655" target="_blank" rel="noopener">参考地址</a>，相关指令:</p>
+ <figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="string">//github.com/protocolbuffers/protobuf</span> protobuf-wasm</span><br><span class="line"><span class="keyword">cd</span> protobuf-wasm</span><br><span class="line">git checkout v3.9.1</span><br><span class="line">git clone https:<span class="string">//github.com/kwonoj/protobuf-wasm</span> wasm-patches</span><br><span class="line"><span class="keyword">cd</span> wasm-patches &amp;&amp; git checkout 4bba8b2f38b5004f87489642b6ca4525ae72fe7f &amp;&amp; <span class="keyword">cd</span> <span class="string">..</span></span><br><span class="line">git apply wasm-patches/*<span class="string">.patch</span></span><br><span class="line"><span class="string">./autogen.sh</span></span><br><span class="line">emconfigure <span class="string">./configure</span> CXXFLAGS=<span class="string">"-O3"</span></span><br><span class="line">emmake make</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>从protobuf官方的github下载3.9.1（为了和上面版本对齐）的源码包，正常用make编译出protoc，这一步是为了用protoc将proto文件编成xxx.h和xxx.cc</p>
+</li>
+<li>编译项目，链接时指定相关目录，pb相关的include头文件用第一步生成的，lib也是。比如我的编译指令（注意链接lib库前面不加参数！）：<blockquote>
+<p>em++ src/handler/<em>.cpp src/module/</em>.cpp src/util/<em>.cpp src/gen_protocol/</em>.cc src/story_line/StoryLine/src/<em>.cpp src/story_line/StoryLine/src/loader/</em>.cpp -I ./src/ -I ./src/story_line/StoryLine/include/ -I ./src/story_line/StoryLine/src/ -I ./src/story_line/StoryLine/src/loader/ -I ./src/handler/ -I ./src/module/ -I ./src/util/ -I ./src/story_line/thirdparty/ -I /home/chauncyli/protobuf-wasm/src/ /home/chauncyli/protobuf-wasm/src/.libs/libprotobuf.a -std=c++11 -o 2130test.js –embed-file res -s WASM=1 –bind -g3</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h2><h4 id="编译报错"><a href="#编译报错" class="headerlink" title="编译报错"></a>编译报错</h4><ol>
+<li>有无数的undefined reference的报错，检查下用到的包是不是因为一个是用的c++编译器，一个用的c编译器，c++编译器是会改变原来函数/变量名的（加前后缀）。通过报错信息可以很清晰的看出来</li>
+<li><p>protoc编译出现：</p>
+<blockquote>
+<p>google/protobuf/descriptor.proto: File not found.<br>   illusion.proto: Import “google/protobuf/descriptor.proto” was not found or had errors.<br>   illusion.proto:8:8: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto: “google.protobuf.MessageOptions” is not defined.<br>   illusion.proto:33:8: “google.protobuf.FieldOptions” is not defined.<br>   illusion.proto: “google.protobuf.FieldOptions” is not defined.<br>   illusion.proto: “google.protobuf.FieldOptions” is not defined.<br>   illusion.proto: “google.protobuf.FieldOptions” is not defined.<br>   illusion.proto: “google.protobuf.FieldOptions” is not defined.<br>   illusion.proto: “google.protobuf.FieldOptions” is not defined.<br>   illusion.proto: “google.protobuf.FieldOptions” is not defined</p>
+</blockquote>
+<p> 是因为protoc文件与其include下的google目录不在同一个目录下，可以拷贝protoc到与google同一级目录下</p>
+</li>
+<li><p>protoc编译出现：</p>
+<blockquote>
+<p>–proto_path passed empty directory name.  (Use “.” for current directory.)</p>
+</blockquote>
+<p> 需要cd到proto文件的目录下，然后执行protoc编译！有点搓，即使在其他目录下-I指定proto文件cd也貌似没用</p>
+</li>
+</ol>
+<h4 id="文件加载。"><a href="#文件加载。" class="headerlink" title="文件加载。"></a>文件加载。</h4><ul>
+<li><p>C/C++代码中有读取文件的话，emscripten也是支持的，且C/C++中不需要修改代码。emscripten的文件加载有两种方式：preload 和 embed（–preload-file，–embed-file），embed是将文件序列化后嵌入到生成的js代码中；preload是将文件分别进行打包到emscripten自己的virtual file system中，C/C++使用层无感知，js也无感知。embed的效率远不及preload，所以embed比较适用于少量的小文件。</p>
+</li>
+<li><p>使用–preload-file打包文件的话生成的除了js胶水代码文件和wasm字节码文件，还会有一个xxx.data，这个就是我们打包的文件，如果打包的是一个文件夹，则该data文件内容就是文件夹下所有的文件内容拼接到一起。可以使用@符合改变文件路径的映射，比如打包当前目录下的res1/, C/C++中读取路径是”/res2/“，编译时参数可以为<code>--preload-file res1/@/res2/</code></p>
+</li>
+</ul>
+<h4 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h4><ul>
+<li>C/C++和js通信如果用的是二进制还有点不同，C/C++用char数组来进行存储，js侧用的是uint数组，如此一来，如果C/C++返回一个二进制字符串，则js侧接收到如果中间有’\0’会进行一个裁剪，后面的内容会丢弃（可以加len验证），这样再进行反序列化就会出错，目前我的做法是在C/C++层将char数组遍历挨个减去’0’转成uint，然后将uint数组传给js，这样可以正常反序列化，可能还有别的更好的方式，目前想到的是这种方法。</li>
+<li><p>返回自定义对象。函数可以返回自定义的class/struct，需要在EMSCRIPTEN_BINDINGS中进行注册.比如返回一个struct：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Res</span> &#123;</span></span><br><span class="line">  Res() &#123; </span><br><span class="line">    succeed = <span class="literal">true</span>;</span><br><span class="line">    value = <span class="string">""</span>;</span><br><span class="line">    error_msg = <span class="string">""</span>;</span><br><span class="line">    ivalue.clear();</span><br><span class="line">    value_len = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">bool</span> succeed;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> value;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> error_msg;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">uint32_t</span>&gt; ivalue;</span><br><span class="line">  <span class="keyword">uint32_t</span> value_len;</span><br><span class="line">&#125; Res;</span><br></pre></td></tr></table></figure>
+<p>EMSCRIPTEN_BINDINGS中需要注册该struct的所有成员：</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">emscripten:</span><span class="symbol">:class_&lt;Res&gt;</span>(<span class="string">"Res"</span>)</span><br><span class="line">    .constructor()</span><br><span class="line">    .property(<span class="string">"succeed"</span>, &amp;<span class="symbol">Res:</span><span class="symbol">:succeed</span>)</span><br><span class="line">    .property(<span class="string">"error_msg"</span>, &amp;<span class="symbol">Res:</span><span class="symbol">:error_msg</span>)</span><br><span class="line">    .property(<span class="string">"value"</span>, &amp;<span class="symbol">Res:</span><span class="symbol">:value</span>)</span><br><span class="line">    .property(<span class="string">"value_len"</span>, &amp;<span class="symbol">Res:</span><span class="symbol">:value_len</span>)</span><br><span class="line">    .property(<span class="string">"ivalue"</span>, &amp;<span class="symbol">Res:</span><span class="symbol">:ivalue</span>);</span><br></pre></td></tr></table></figure>
+<p>但是返回值中不可以有数组或者指针，不管直接返回还是在struct中都不可以。</p>
+</li>
+<li>返回vector/map。这两种类型emscripten提供注册函数可以注册，js中即可以直接使用，<a href="https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html" target="_blank" rel="noopener">参考地址</a>：<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">  emscripten::register_vector&lt;uint32_t&gt;(<span class="string">"vector&lt;uint32_t&gt;"</span>);</span><br><span class="line">  emscripten::register_map&lt;uint32_t, int&gt;(<span class="string">"map&lt;uint32_t, int&gt;"</span>);</span><br><span class="line">  ```  </span><br><span class="line"></span><br><span class="line">#### 参数</span><br><span class="line">- C/C++中有参数引用，函数中可以直接修改这个引用的值，这样函数返回时可以减少一次值拷贝，效率比较高。但是可能js不支持，经验证，所有涉及函数修改参数引用的值时编译都会报错`internal::BindingType&lt;Args&gt;::fromWireType(args)`，只能是const的引用来对该参数只读操作。指针类似，涉及修改参数的都会报错。</span><br><span class="line"></span><br><span class="line">#### 使用</span><br><span class="line">我是将C/C++代码写到一个类中，让客户端童鞋可以用js通过我定义的类的一些接口实现数据交互。这里需要注册一下类以及对应的接口，比如：</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>emscripten::class_<csstorylinehandler>(“CSStorylineHandler”)<br>      .constructor()<br>      .function(“InitPlayer”, &amp;CSStorylineHandler::InitPlayer, emscripten::allow_raw_pointers())<br>      .function(“GetParseString”, &amp;CSStorylineHandler::GetParseString, emscripten::allow_raw_pointers())<br>      .function(“GetCurrentPath”, &amp;CSStorylineHandler::GetCurrentPath, emscripten::allow_raw_pointers());<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这样在客户端通过定义这个类的对象就可以访问这里注册的接口了：</span><br></pre></td></tr></table></figure></csstorylinehandler></p>
+<p>var obj = new Module.CSStorylineHandler()<br>obj.InitPlayer()<br>var res = obj.GetParseString(arg1, arg2)<br>var path = obj.GetCurrentPath(arg1, arg2)<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 最后</span></span></span><br><span class="line">为了避免再碰到环境搭建的问题，我已经将搭建好的环境编成docker上传。各位大佬只需要pull下就可以开箱即用了</span><br></pre></td></tr></table></figure></p>
+<p>docker pull chauncyli/emscripten_ci:0.0.1<br>docker container run image_id -it /bin/bash</p>
+<p>#记得source一下emsdk<br>source emsdk/emsdk_env.sh<br>```<br>感觉emscripten应用前景很广，比如一些库有C/C++实现，如果JS的性能不好完全可以用emscripten将C/C++的库编译成对应的wasm，然后在浏览器中直接用js代码调用对应的C/C++接口（<a href="https://emscripten.org/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html" target="_blank" rel="noopener">参考地址</a>）就可以达到接近C/C++原生的运行速度。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a href="https://ivweb.io/article.html?_id=100411" target="_blank" rel="noopener">WebAssembly 不完全指北</a><br><a href="https://emscripten.org/docs/porting/files/packaging_files.html" target="_blank" rel="noopener">编译打包</a><br><a href="https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-views" target="_blank" rel="noopener">注册，返回值</a><br><a href="https://github.com/emscripten-core/emscripten/issues/9655" target="_blank" rel="noopener">使用emscripten编译protobuf</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/emscripten/" rel="tag"># emscripten</a>
+          
+            <a href="/tags/protobuf/" rel="tag"># protobuf</a>
+          
+            <a href="/tags/JS/" rel="tag"># JS</a>
+          
+            <a href="/tags/webAssembly/" rel="tag"># webAssembly</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/19/Git踩坑指南/" rel="next" title="Git踩坑指南">
+                <i class="fa fa-chevron-left"></i> Git踩坑指南
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/07/12/基于redis的分布式锁学习/" rel="prev" title="基于redis的分布式锁学习">
+                基于redis的分布式锁学习 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方案"><span class="nav-number">1.</span> <span class="nav-text">解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#坑点"><span class="nav-number">2.</span> <span class="nav-text">坑点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#编译报错"><span class="nav-number">2.0.1.</span> <span class="nav-text">编译报错</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文件加载。"><span class="nav-number">2.0.2.</span> <span class="nav-text">文件加载。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#返回值"><span class="nav-number">2.0.3.</span> <span class="nav-text">返回值</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

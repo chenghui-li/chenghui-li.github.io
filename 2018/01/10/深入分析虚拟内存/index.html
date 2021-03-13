@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="虚拟内存,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述物理寻址计算机系统的主存被组织成一个由M个连续的字节大小的单元组成的数组。每个字节都有一个唯一的物理地址，第一个字节的地址为0，第二个为1，以此类推。CPU访问内存最自然的方式就是使用物理地址，这种寻址方式即物理寻址。当CPU执行加载指令时，生成一个物理地址，通过内存总线将其送给主存。主存取出对应位置的内容返回给CPU，CPU将其放到一个寄存器里。">
+<meta name="keywords" content="虚拟内存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入分析虚拟内存">
+<meta property="og:url" content="www.chenghuili.cn/2018/01/10/深入分析虚拟内存/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="概述物理寻址计算机系统的主存被组织成一个由M个连续的字节大小的单元组成的数组。每个字节都有一个唯一的物理地址，第一个字节的地址为0，第二个为1，以此类推。CPU访问内存最自然的方式就是使用物理地址，这种寻址方式即物理寻址。当CPU执行加载指令时，生成一个物理地址，通过内存总线将其送给主存。主存取出对应位置的内容返回给CPU，CPU将其放到一个寄存器里。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E9%A1%B5%E8%A1%A8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E4%BD%BF%E7%94%A8%E9%A1%B5%E8%A1%A8%E7%9A%84%E5%9C%B0%E5%9D%80%E7%BF%BB%E8%AF%91.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E5%91%BD%E4%B8%AD.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E7%BC%BA%E9%A1%B5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E4%B8%A4%E7%BA%A7%E9%A1%B5%E8%A1%A8.png">
+<meta property="og:updated_time" content="2018-01-10T07:27:34.281Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入分析虚拟内存">
+<meta name="twitter:description" content="概述物理寻址计算机系统的主存被组织成一个由M个连续的字节大小的单元组成的数组。每个字节都有一个唯一的物理地址，第一个字节的地址为0，第二个为1，以此类推。CPU访问内存最自然的方式就是使用物理地址，这种寻址方式即物理寻址。当CPU执行加载指令时，生成一个物理地址，通过内存总线将其送给主存。主存取出对应位置的内容返回给CPU，CPU将其放到一个寄存器里。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E9%A1%B5%E8%A1%A8.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/01/10/深入分析虚拟内存/">
+
+
+
+
+
+  <title>深入分析虚拟内存 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/01/10/深入分析虚拟内存/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入分析虚拟内存</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-10T19:24:04+08:00">
+                2018-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/操作系统/" itemprop="url" rel="index">
+                    <span itemprop="name">操作系统</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/01/10/深入分析虚拟内存/" class="leancloud_visitors" data-flag-title="深入分析虚拟内存">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><h2 id="物理寻址"><a href="#物理寻址" class="headerlink" title="物理寻址"></a>物理寻址</h2><p>计算机系统的主存被组织成一个由M个连续的字节大小的单元组成的数组。每个字节都有一个唯一的<strong>物理地址</strong>，第一个字节的地址为0，第二个为1，以此类推。CPU访问内存最自然的方式就是使用物理地址，这种寻址方式即物理寻址。当CPU执行加载指令时，生成一个物理地址，通过内存总线将其送给主存。主存取出对应位置的内容返回给CPU，CPU将其放到一个寄存器里。<br><a id="more"></a></p>
+<h2 id="虚拟寻址"><a href="#虚拟寻址" class="headerlink" title="虚拟寻址"></a>虚拟寻址</h2><p>使用虚拟寻址，CPU通过生成一个虚拟地址（VA）来访问主存，这个虚拟地址在被送到内存之前先被转换成对应的物理地址。将一个虚拟地址转换为物理地址的任务称为<strong>地址翻译</strong>。执行这个任务的是一个位于CPU芯片上的叫做<strong>内存管理单元</strong>（MMU）的硬件，它利用存放在主存中的查询表（页表）来动态的翻译虚拟地址，该表的内容由操作系统管理。<br>概念上讲，虚拟内存被组织为一个由存放在磁盘上的N个连续的字节大小的单元组成的数组。每个字节都有一个唯一的虚拟地址，作为到数组的索引。磁盘上数组的（部分）内容被缓存到主存中。和其他缓存一样，虚拟内存被划分为固定大小的<strong>虚拟页</strong>，大小为P字节，物理内存也被划分为固定大小的物理页（也称为页帧），大小也是P字节。在任意时刻，虚拟页面都有以下三种状态的一种：</p>
+<ul>
+<li>未分配的<br>系统还没有分配的页。未分配的块没有任何数据和它们相关联，也就不占用磁盘空间，也就不能访问。</li>
+<li>已缓存的<br>当前已缓存到物理内存中的已经分配了的页。</li>
+<li>未缓存的<br>未缓存到物理内存的已经分配了的页（存在磁盘上，访问时会产生缺页中断）。<h2 id="页表"><a href="#页表" class="headerlink" title="页表"></a>页表</h2>同任何缓存一样，虚拟内存系统必须有某种方法来判定一个虚拟页是否缓存在主存中的某个地方。如果是，还需确定这个虚拟页存放在哪个物理页中。如果不命中，系统必须判断这个虚拟页存放在磁盘的哪个位置，在物理内存中选择一个牺牲页被替换。<br><strong>页表</strong>就是一种将虚拟页映射到物理页的存于物理内存中的一种数据结构，它是若干页表项（PTE）的集合，虚拟地址空间中的每个页在页表中固定偏移量处都有一个页表项。每次MMU将一个虚拟地址转换为物理地址时都要读取页表。<br>现在假设每个PTE是由一个有效位和一个n位地址字段组成（真正的页表项比这要复杂）。有效位表明该地址字段是否被缓存到物理内存中，如果设置了有效位（已缓存），则表明这个物理页中缓存了该虚拟页，地址字段就表示物理内存中相应的物理页的起始地址；如果没有设置有效位（未分配），则用一个空地址表示这个虚拟页还没有分配；否则（未缓存），这个地址就指向该虚拟页所在的磁盘上的起始位置。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E9%A1%B5%E8%A1%A8.png" alt><br>比如该图中VP1 2 4 7已缓存，VP3 6 未缓存，VP0 5未分配。</li>
+</ul>
+<h2 id="工作集"><a href="#工作集" class="headerlink" title="工作集"></a>工作集</h2><p>尽管在整个运行过程中程序引用的不同页面的总数可能超过物理内存的大小，但是局部性原则保证了在任意时刻，程序将趋于在一个较小的活动页面集合上工作，这个集合叫做<strong>工作集</strong>，初始将工作集页面调度到内存中后，接下来对这个工作集的引用将导致命中，不会产生额外的磁盘流量。但是如果工作集的大小超过了物理内存的大小，此时页面将不断的换进换出，发生<strong>抖动</strong>，占据CPU资源，程序运行变慢。</p>
+<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><h2 id="为什么要有虚拟内存的存在？"><a href="#为什么要有虚拟内存的存在？" class="headerlink" title="为什么要有虚拟内存的存在？"></a>为什么要有虚拟内存的存在？</h2><p>因为需要运行的程序太大太多，而内存空间又太小，不可能把所有程序都调入内存中工作。虚拟内存就是来解决这个问题的。</p>
+<h2 id="它是什么？怎么工作的？"><a href="#它是什么？怎么工作的？" class="headerlink" title="它是什么？怎么工作的？"></a>它是什么？怎么工作的？</h2><p> 每个程序都会被分配一个自己的虚拟地址空间，这些空间被分割成多个块，每个块称为一页，每一页有连续的地址范围，这些页被映射到物理内存，但并不是所有的页都必须在内存中程序才能运行。当程序引用到一部分在物理内存中的地址空间时，由MMU进行映射转换；当引用到一部分不在物理内存中的地址空间时，操作系统负责将该页面调入内存，重新执行失败的指令。</p>
+<h2 id="再谈MMU的地址翻译"><a href="#再谈MMU的地址翻译" class="headerlink" title="再谈MMU的地址翻译"></a>再谈MMU的地址翻译</h2><p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E4%BD%BF%E7%94%A8%E9%A1%B5%E8%A1%A8%E7%9A%84%E5%9C%B0%E5%9D%80%E7%BF%BB%E8%AF%91.png" alt><br>CPU中的一个控制寄存器——页表基址寄存器指向当前页表。n位的虚拟地址包含两个部分：一个p位的<em>虚拟页面偏移</em>（VPO）和一个n-p位的<em>虚拟页号</em>（VPN），MMU以VPN为索引来选择适当的PTE，将PTE中的物理页号（PPN）和虚拟地址中的VPO串联起来，即得到了相应的物理地址（因为VPN和PPN都是P字节的，故物理页面偏移PPO和VPO是相同的）。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E5%91%BD%E4%B8%AD.png" alt>(PA：物理地址。PTEA：页表条目地址。PTE：页表条目。VA：虚拟地址)<br>当页面命中时，CPU执行以下步骤：</p>
+<blockquote>
+<ol>
+<li>处理器生成一个虚拟地址，把它传给MMU。</li>
+<li>MMU生成PTE地址，并从高速缓存/主存请求得到它</li>
+<li>高速缓存/主存向MMU返回PTE</li>
+<li>MMU构造物理地址，并把它传给高速缓存/主存</li>
+<li>高速缓存/主存返回所请求的数据字给处理器 </li>
+</ol>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E7%BC%BA%E9%A1%B5.png" alt><br>当页面未命中时，CPU执行以下步骤：</p>
+<blockquote>
+<p>1到3步与命中相同</p>
+<ol>
+<li>PTE的有效位是0，触发一次异常，传递CPU中的控制到操作系统内核执行缺页异常处理程序 </li>
+<li>缺页处理程序确定出物理内存中的牺牲页，如果该页面已经修改，则将其换出到磁盘。</li>
+<li>缺页处理程序调入新的页面，并更新内存中的PTE。</li>
+<li>缺页处理程序返回到原来的进程，重新执行刚导致缺页的指令 。命中后将数据取出，返回给CPU。</li>
+</ol>
+</blockquote>
+<p>可见，每次CPU产生一个虚拟地址，MMU都要查询一次PTE，即从内存中取一次数据，访问内存其实是比较慢的，大约需要几百个周期。可以将一些PTE表项缓存到高速缓存SRAM中，称为<strong>翻译后备缓冲器</strong>（TLB）。<br>TLB是一个小的，虚拟寻址的缓存，其中每一行都保存着一个由单个PTE组成的块，每次访问只需要1到2个周期。<br>当TLB命中时：</p>
+<blockquote>
+<ol>
+<li>CPU产生一个虚拟地址</li>
+<li>MMU从TLB中取出相应PTE</li>
+<li>MMU将这个虚拟地址翻译成一个物理地址，并将其发送到高速缓存/主存中。</li>
+<li>高速缓存/主存将所需数据返回给CPU。</li>
+</ol>
+</blockquote>
+<p>当TLB不命中时，MMU必须从内存页表中取出相应的PTE，并将其拷贝到TLB中覆盖一个原有块，然后执行和命中时相同的3.4步</p>
+<h2 id="4-多级页表引入"><a href="#4-多级页表引入" class="headerlink" title="4.多级页表引入"></a>4.多级页表引入</h2><p>当有一个32位的地址空间、4KB的页面大小、每个PTE占4个字节，这个时候意味着需要2^32 \ 2^12 = 1M个页表项需要存于内存中，时时刻刻占4M内存，显然不切实际，（何况64位）。此时就要用到多级页表。</p>
+<p>多级页表的思想抽象的说就是加法换乘法。针对上述情况，设置两级页表，一级页表中有1024个PTE，每个PTE存储一个二级页表的地址。每个二级页表中有1024个PTE，每个PTE映射一个4KB的虚拟内存页面。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/%E4%B8%A4%E7%BA%A7%E9%A1%B5%E8%A1%A8.png" alt><br>这种方法从两方面减小了内存需求：</p>
+<ol>
+<li>如果一级页表中一个PTE全是空的，那么相应的二级页表就不会存在。实际中也是如此，比如4G内存，实际上大部分都没有分配。</li>
+<li>只有一级页表才总是在内存中；虚拟内存系统可以在需要时进行创建，换进，换出二级页表，只有最经常使用的部分二级页表会在内存中，这也大大减少了内存的压力。</li>
+</ol>
+<p>可以这样想，一本书表示一个虚拟内存，书的目录代表页表，如果书非常厚，那么导致的结果就是目录项很多，目录也非常厚，此时的多级页表就类似与给目录加了一个目录。</p>
+<hr>
+<p>参考资料：<br>《深入理解计算机系统 3th》（CSAPP） 第9章<br>《现代操作系统 3th》（MOS）第3章</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/虚拟内存/" rel="tag"># 虚拟内存</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/09/二叉搜索树详解/" rel="next" title="二叉搜索树详解">
+                <i class="fa fa-chevron-left"></i> 二叉搜索树详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/11/wait，waitpid，waitid，wait3，wait4函数详解/" rel="prev" title="wait，waitpid，waitid，wait3，wait4函数详解">
+                wait，waitpid，waitid，wait3，wait4函数详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#物理寻址"><span class="nav-number">1.1.</span> <span class="nav-text">物理寻址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟寻址"><span class="nav-number">1.2.</span> <span class="nav-text">虚拟寻址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页表"><span class="nav-number">1.3.</span> <span class="nav-text">页表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作集"><span class="nav-number">1.4.</span> <span class="nav-text">工作集</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分析"><span class="nav-number">2.</span> <span class="nav-text">分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么要有虚拟内存的存在？"><span class="nav-number">2.1.</span> <span class="nav-text">为什么要有虚拟内存的存在？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#它是什么？怎么工作的？"><span class="nav-number">2.2.</span> <span class="nav-text">它是什么？怎么工作的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#再谈MMU的地址翻译"><span class="nav-number">2.3.</span> <span class="nav-text">再谈MMU的地址翻译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-多级页表引入"><span class="nav-number">2.4.</span> <span class="nav-text">4.多级页表引入</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="深拷贝,浅拷贝,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前些日子写过一篇C++拷贝控制与资源管理的文章，是看过第一遍《C++ primer》之后的总结与分析。最近被问到类似的问题，还是答不上来。所以，最后，知菜后勇。又google了好多博客，体会颇深，故作此篇，共勉。">
+<meta name="keywords" content="深拷贝,浅拷贝">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入分析C++中的深拷贝与浅拷贝">
+<meta property="og:url" content="www.chenghuili.cn/2018/03/13/深入分析C-中的深拷贝与浅拷贝/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="前些日子写过一篇C++拷贝控制与资源管理的文章，是看过第一遍《C++ primer》之后的总结与分析。最近被问到类似的问题，还是答不上来。所以，最后，知菜后勇。又google了好多博客，体会颇深，故作此篇，共勉。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/350aa994148a110ba115c8f035d8cc844ec0c6a8/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E6%B5%85%E6%8B%B7%E8%B4%9D.png">
+<meta property="og:updated_time" content="2019-06-27T07:56:10.871Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入分析C++中的深拷贝与浅拷贝">
+<meta name="twitter:description" content="前些日子写过一篇C++拷贝控制与资源管理的文章，是看过第一遍《C++ primer》之后的总结与分析。最近被问到类似的问题，还是答不上来。所以，最后，知菜后勇。又google了好多博客，体会颇深，故作此篇，共勉。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/350aa994148a110ba115c8f035d8cc844ec0c6a8/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E6%B5%85%E6%8B%B7%E8%B4%9D.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/03/13/深入分析C-中的深拷贝与浅拷贝/">
+
+
+
+
+
+  <title>深入分析C++中的深拷贝与浅拷贝 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/03/13/深入分析C-中的深拷贝与浅拷贝/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入分析C++中的深拷贝与浅拷贝</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-13T14:33:29+08:00">
+                2018-03-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/语言/" itemprop="url" rel="index">
+                    <span itemprop="name">语言</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/03/13/深入分析C-中的深拷贝与浅拷贝/" class="leancloud_visitors" data-flag-title="深入分析C++中的深拷贝与浅拷贝">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前些日子写过一篇<a href="http://www.chenghuili.cn/2018/03/02/C-%E4%B8%AD%E7%9A%84%E6%8B%B7%E8%B4%9D%E6%8E%A7%E5%88%B6%E4%B8%8E%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86/">C++拷贝控制与资源管理的文章</a>，是看过第一遍《C++ primer》之后的总结与分析。最近被问到类似的问题，还是答不上来。所以，最后，知菜后勇。又google了好多博客，体会颇深，故作此篇，共勉。<br><a id="more"></a></p>
+<h1 id="何时调用"><a href="#何时调用" class="headerlink" title="何时调用"></a>何时调用</h1><p>先看一个例子<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        A()&#123;<span class="built_in">cout</span>&lt;&lt;<span class="string">"constructor"</span>&lt;&lt;<span class="built_in">endl</span>;&#125;</span><br><span class="line">        A(<span class="keyword">const</span> A &amp;p)&#123;<span class="built_in">cout</span>&lt;&lt;<span class="string">"copy constructor"</span>&lt;&lt;<span class="built_in">endl</span>;&#125;</span><br><span class="line">        A&amp; <span class="keyword">operator</span>=(<span class="keyword">const</span> A &amp;p)&#123;<span class="built_in">cout</span>&lt;&lt;<span class="string">"assign"</span>&lt;&lt;<span class="built_in">endl</span>; <span class="keyword">return</span> *<span class="keyword">this</span>;&#125;</span><br><span class="line">        ~A()&#123;<span class="built_in">cout</span>&lt;&lt;<span class="string">"destroy"</span>&lt;&lt;<span class="built_in">endl</span>;&#125;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">        <span class="keyword">int</span> a;</span><br><span class="line">        <span class="built_in">string</span> s;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">f1</span><span class="params">(A a)</span></span>&#123;<span class="keyword">return</span> ;&#125;</span><br><span class="line"><span class="function">A <span class="title">f2</span><span class="params">()</span></span>&#123;</span><br><span class="line">    A a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    A a1;   <span class="comment">//1</span></span><br><span class="line">    A a2 = a1;   <span class="comment">//2</span></span><br><span class="line">    A a3    <span class="comment">//3</span></span><br><span class="line">    a3 = a1;   <span class="comment">//4</span></span><br><span class="line">    f1(a1);    <span class="comment">//5</span></span><br><span class="line">    a3 = f2();    <span class="comment">//6</span></span><br><span class="line">    A a4 = f2();    <span class="comment">//7</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>运行结果如下：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/350aa994148a110ba115c8f035d8cc844ec0c6a8/linux%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/%E6%B5%85%E6%8B%B7%E8%B4%9D.png" alt><br>分析下结果：</p>
+<ol>
+<li>不用说，调用构造函数创建a1，默认初始化.</li>
+<li>用已有对象a1创建不存在的对象a2，虽然用了=号，但是确实是创建了一个新的对象，用a1给它初始化。所以调用的是拷贝构造函数。</li>
+<li>调用构造函数创建a3，默认初始化。</li>
+<li>此时a3已经有了初始值，此处的等号是用a1给a3赋值，所以调用的是拷贝赋值运算符。</li>
+<li>形参没有初始化，使用拷贝构造函数将实参传递给形参。f1()return时局部对象a被销毁，调用析构函数。</li>
+<li>f2()中的局部对象a被创建（调用构造函数），默认初始化。return a时拷贝a的值到临时对象（调用的是拷贝赋值运算符）。然后销毁局部对象a（调用析构函数）。</li>
+<li>（与想象中的差别挺大，应该是编译器优化了。学习中…）<br>总的来说，<strong>当用一个已存在的对象创建一个新的对象时，是调用拷贝构造函数。如果是用=号改变当前对象的值时，调用的是拷贝赋值运算符。</strong></li>
+</ol>
+<h1 id="深拷贝与浅拷贝"><a href="#深拷贝与浅拷贝" class="headerlink" title="深拷贝与浅拷贝"></a>深拷贝与浅拷贝</h1><p>通常，默认生成的拷贝构造函数和赋值运算符，只是简单的进行值的复制，在上例中类的成员<code>int</code>和<code>string</code>，在拷贝或者赋值时进行值复制创建的出来的对象和源对象也是没有任何关联，对源对象的改变不会影响到创建出来的对象。然而，如果有一个成员<code>int *</code>，同样只是进行了值拷贝，此时的源对象与拷贝创建出来的对象中的<code>int *</code>都指向同一个位置，如果改变一个对象的值，也会影响到另一个对象的值。这就是<strong>浅拷贝</strong>。这时候应该自定义<strong>深拷贝</strong>的拷贝构造函数来解决这种问题。这有一个通用的原则：</p>
+<ol>
+<li>如果类的成员中有指针或动态分配的内存，应该自定义拷贝构造函数。</li>
+<li>在自定义拷贝构造函数的同时应该也自定义拷贝赋值运算符。</li>
+</ol>
+<p>在定义深拷贝的拷贝构造函数时，要注意以下几点：</p>
+<ol>
+<li>对于值类型的成员，应该进行值拷贝。</li>
+<li>对于指针和动态分配的内存成员，应该重新分配内存进行拷贝。</li>
+</ol>
+<p>下面实现一下浅拷贝和深拷贝，这里的浅拷贝解决了同一块内存析构两次的问题。<br><figure class="highlight zephir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//浅拷贝</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span></span>&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">    <span class="keyword">char</span> *str;</span><br><span class="line">    <span class="keyword">int</span> *<span class="keyword">use</span>;    <span class="comment">//引用计数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//构造函数</span></span><br><span class="line">    A(<span class="keyword">int</span> _num,<span class="keyword">char</span> *_str):num(_num),str(<span class="keyword">new</span> <span class="keyword">char</span>(*_str)),*<span class="keyword">use</span>(1)&#123; &#125;</span><br><span class="line">    <span class="title">A</span>(<span class="title">const</span> &amp;<span class="title">a</span>);    <span class="comment">//拷贝构造函数</span></span><br><span class="line">    A &amp;operator=(<span class="keyword">const</span> A &amp;a);    <span class="comment">//拷贝赋值运算符</span></span><br><span class="line">    ~A();</span><br><span class="line">&#125;；</span><br><span class="line">A::A(<span class="keyword">const</span> A &amp;a)&#123;</span><br><span class="line">        num = a.num;</span><br><span class="line">        str = a.str;</span><br><span class="line">        ++*<span class="keyword">use</span>;</span><br><span class="line">&#125;</span><br><span class="line">A&amp; A::operator=(<span class="keyword">const</span> A &amp;a)&#123;</span><br><span class="line">        ++*a.<span class="keyword">use</span>;</span><br><span class="line">        <span class="keyword">if</span>(--*<span class="keyword">use</span> == 0)&#123;</span><br><span class="line">           <span class="title">delete</span> <span class="title">str</span>;</span><br><span class="line">           delete <span class="keyword">use</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        num = a.num;</span><br><span class="line">        str = a.str;</span><br><span class="line">        <span class="keyword">use</span> = <span class="title">a</span>.<span class="title">use</span>;</span><br><span class="line">        <span class="keyword">return</span> *this;</span><br><span class="line">&#125;</span><br><span class="line">A::~A()&#123;</span><br><span class="line">    <span class="keyword">if</span>(--*<span class="keyword">use</span> == 0)&#123;</span><br><span class="line">        <span class="title">delete</span> <span class="title">s</span>;</span><br><span class="line">        delete <span class="keyword">use</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//深拷贝</span></span><br><span class="line">class A&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">int</span> num;</span><br><span class="line">    <span class="built_in">char</span> *<span class="built_in">str</span>;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    A()&#123; &#125;</span><br><span class="line">    A(<span class="built_in">int</span> _num,<span class="built_in">char</span> *_str):num(_num),<span class="built_in">str</span>(<span class="keyword">new</span> <span class="built_in">char</span>(*_str))&#123;&#125;</span><br><span class="line">    A(<span class="keyword">const</span> &amp;a):num(a.num),<span class="built_in">str</span>(<span class="keyword">new</span> <span class="built_in">char</span>(*a.<span class="built_in">str</span>))&#123; &#125;</span><br><span class="line">    A&amp; operator=(<span class="keyword">const</span> A&amp;a);</span><br><span class="line">&#125;;</span><br><span class="line">A&amp; A::operator=(<span class="keyword">const</span> A &amp;a)&#123;</span><br><span class="line">    <span class="keyword">if</span>(&amp;a != <span class="keyword">this</span>)&#123;</span><br><span class="line">        num = a.num;</span><br><span class="line">        <span class="built_in">char</span> *tmp = <span class="keyword">new</span> <span class="built_in">char</span>(*a.<span class="built_in">str</span>);</span><br><span class="line">        delete <span class="built_in">str</span>;</span><br><span class="line">        <span class="built_in">str</span> = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h1><ul>
+<li><p>对于拷贝构造函数和拷贝赋值运算符的参数，都用的是const类型的引用，<strong>用const是因为</strong>一来可以提高效率，告诉编译器这部分内容不会修改，从而优化代码；二来是因为，如果形参写为const，那么实参无论是const还是非const都可以调用，而如果形参写成非const，那么调用它的只能是非const，const实参调用会发生编译错误。<strong>用引用是因为</strong>这样可以避免不必要的拷贝，提高运行效率。</p>
+</li>
+<li><p><strong>拷贝赋值运算符返回的是一个引用，</strong>即<code>return *this</code>，这样做是因为可以避免返回时的不必要的拷贝，提高运行效率；<strong>其次最重要的一点是因为</strong>，返回引用可以实现连续赋值。比如类似<code>(a = b) =c</code>的运算，如果返回的是普通的值类型，那么执行<code>a = b</code>时，将b的值拷贝到一个临时的副本（匿名对象）中，然后把这个匿名对象赋值给a，也就是说a得到的是一个右值，在执行<code>=c</code>时会引发错误。</p>
+</li>
+<li><p><strong>拷贝赋值运算符函数只能是类的一个非静态成员函数，而不可以是静态成员函数或者友元函数</strong>，因为静态成员函数只能操作类的静态成员，显然这样是不行的。不能声明为友元函数是因为，如果声明为友元，类内没有声明以本类或类的引用作为参数的拷贝赋值运算符函数，此时编译器会自动生成一个拷贝赋值运算符函数。现在如果调用拷贝赋值运算符函数，应该调用声明的友元版本还是调用编译器生成的默认版本，会引发二义性，所以C++规定只能声明为类的非静态成员函数。</p>
+</li>
+<li><p><strong>拷贝赋值运算符函数不可以继承</strong>。这是因为如果可以继承的话，在派生类不定义自己的拷贝赋值运算符的情况下调用基类版本。只会负责拷贝基类的部分，而在继承中派生类会额外定义自己的成员变量，此时这部分成员没有拷贝。所以C++规定拷贝赋值运算符函数不可以继承。</p>
+</li>
+</ul>
+<hr>
+<p>参考资料</p>
+<p>《C++ primer 5th》<br><a href="http://www.cnblogs.com/wangguchangqing/p/6141743.html" target="_blank" rel="noopener">blog1</a><br><a href="https://www.cnblogs.com/zpcdbky/p/5027481.html" target="_blank" rel="noopener">blog2</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/深拷贝/" rel="tag"># 深拷贝</a>
+          
+            <a href="/tags/浅拷贝/" rel="tag"># 浅拷贝</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/09/回文子序列问题/" rel="next" title="回文子序列问题">
+                <i class="fa fa-chevron-left"></i> 回文子序列问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/16/总结——线程同步/" rel="prev" title="总结——线程同步">
+                总结——线程同步 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#何时调用"><span class="nav-number">1.</span> <span class="nav-text">何时调用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#深拷贝与浅拷贝"><span class="nav-number">2.</span> <span class="nav-text">深拷贝与浅拷贝</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#补充"><span class="nav-number">3.</span> <span class="nav-text">补充</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

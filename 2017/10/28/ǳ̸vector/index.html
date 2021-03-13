@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="STL,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="目录： 1.vector概述 2.vector声明 3.vector迭代器 4.vector数据结构 5.vector常用成员函数 6.测试程序">
+<meta name="keywords" content="STL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈vector">
+<meta property="og:url" content="www.chenghuili.cn/2017/10/28/ǳ̸vector/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="目录： 1.vector概述 2.vector声明 3.vector迭代器 4.vector数据结构 5.vector常用成员函数 6.测试程序">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-06-27T07:55:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅谈vector">
+<meta name="twitter:description" content="目录： 1.vector概述 2.vector声明 3.vector迭代器 4.vector数据结构 5.vector常用成员函数 6.测试程序">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2017/10/28/ǳ̸vector/">
+
+
+
+
+
+  <title>浅谈vector | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2017/10/28/ǳ̸vector/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">浅谈vector</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-10-28T12:26:19+08:00">
+                2017-10-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/语言/" itemprop="url" rel="index">
+                    <span itemprop="name">语言</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/10/28/ǳ̸vector/" class="leancloud_visitors" data-flag-title="浅谈vector">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>目录：<br> 1.vector概述<br> 2.vector声明<br> 3.vector迭代器<br> 4.vector数据结构<br> 5.vector常用成员函数<br> 6.测试程序</p>
+<a id="more"></a>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>vector的数据安排以及操作方式与array非常类似，两者唯一的差别在于空间的运用的灵活性。array是静态空间，一旦配置了就不能改变，要换个大点（或者小点）的房子，需要客户端自己来搞：先申请一块空间，然后将旧array中的元素挨个拷贝到新的array中，再释放旧array。vector是动态空间，随着元素的加入，它的内部机制会自行扩充空间以适应新元素的插入。因此，vector的应用对于内存的合理利用有很大帮助。<br>vector的实现技术，关键在于对大小的控制和重新配置时数据的移动效率。一旦vector旧空间满载，此时客户端继续新增元素，如果vector内部只是扩充了一个元素的空间，实为不智之举。其配置步骤为：配置新空间-&gt;移动元素-&gt;释放旧空间。工程浩大，时间成本高，故需采取未雨绸缪的方案。</p>
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;<span class="keyword">typename</span>&gt; vector_name</span><br><span class="line"><span class="built_in">vector</span>&lt;<span class="keyword">typename</span>&gt; vector_name(size,element)    <span class="comment">//大小为size，里面元素全部初始化为element</span></span><br></pre></td></tr></table></figure>
+<h2 id="迭代器"><a href="#迭代器" class="headerlink" title="迭代器"></a>迭代器</h2><pre><code>`vector&lt;typename&gt;::iterator ite`
+ite的类型就是 * typename
+</code></pre><p>vector维护的是一个连续的线性空间，所有不论其元素类型如何，普通指针都可以作为vector的迭代器而满足所有必要条件因为vector所需要的操作行为如：operator-&gt;，operator*,operator++,operator–,operator+=，operator-=，普通指针天生就具备。vector支持随机存取，而普通指针正有这样的能力。</p>
+<h2 id="vector数据结构"><a href="#vector数据结构" class="headerlink" title="vector数据结构"></a>vector数据结构</h2><p>vector所采用的数据结构非常简单：线性连续空间。它以两个迭代器start，和finish分别指向配置得来的连续空间中目前已被使用的范围，并以迭代器end_of_storage指向整块连续空间（含备用空间）的尾端：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">template &lt;<span class="class"><span class="keyword">class</span> <span class="title">T</span>,<span class="type">class Alloc = alloc&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">vector</span></span>&#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">protected</span>:</span><br><span class="line">		iterator start;</span><br><span class="line">		iterator finish;</span><br><span class="line">		iterator end_of_storage</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>为了降低空间配置时的速度成本，vector实际配置的大小可能比客户端需求量更大一些，以备将来可能的扩充，这就是容量（capacity）。换句话说，vector的容量一定大于等于它的大小，如果满载并继续添加元素，则<strong>重新配置一块原来两倍空间的容量，然后复制原来元素，释放旧的空间</strong></p>
+<h2 id="常用成员函数"><a href="#常用成员函数" class="headerlink" title="常用成员函数"></a>常用成员函数</h2><figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">reference front()&#123; <span class="keyword">return</span> * begin; &#125;      //获取头元素</span><br><span class="line">reference back()&#123; <span class="keyword">return</span> * (<span class="keyword">end</span>) - <span class="number">1</span>;&#125;    //获取尾元素</span><br><span class="line"><span class="built_in">void</span> insert(<span class="keyword">iterator</span> position,（size_type n,）<span class="keyword">const</span> T &amp;x) &#123;&#125;    //在某位置前插入(n个)元素</span><br><span class="line"><span class="built_in">void</span> push_back(<span class="keyword">const</span> T &amp;x)&#123; ... &#125;         //尾部插入元素</span><br><span class="line"><span class="built_in">void</span> pop_back()&#123; ... &#125;	                   //尾部弹出元素</span><br><span class="line"><span class="built_in">void</span> clear()<span class="meta">&#123;...&#125;</span>                         //清空vector</span><br><span class="line"><span class="keyword">iterator</span> erase(<span class="keyword">iterator</span> position) &#123; ... &#125; //删除某位置元素</span><br><span class="line"><span class="keyword">iterator</span> erase(<span class="keyword">iterator</span> first,<span class="keyword">iterator</span> last)<span class="meta">&#123;...&#125;</span>    //删除[first,last)区域内的元素</span><br><span class="line"><span class="keyword">iterator</span> begin() &#123;<span class="keyword">return</span> start;&#125;          //第一个元素的位置</span><br><span class="line"><span class="keyword">iterator</span> <span class="keyword">end</span>()&#123;<span class="keyword">return</span> finish;&#125;            //最后一个元素的下一个位置</span><br><span class="line"><span class="keyword">iterator</span> find(<span class="keyword">iterator</span> start_position,<span class="keyword">iterator</span> end_position,size_type element)&#123;&#125;</span><br><span class="line">                                    	   //在指定区域内查找指定元素，找不到则返回位置<span class="keyword">end</span>()</span><br><span class="line">size_type size() <span class="meta">&#123;...&#125;</span>                    //元素个数</span><br><span class="line"><span class="built_in">bool</span> empty()<span class="meta">&#123;...&#125;</span>                         //判断vector是否为空</span><br></pre></td></tr></table></figure>
+<p>每次调用push_back()时，该函数检查是否还有备用空间，如果有则插入，否则扩充空间（重新配置，拷贝数据，释放原空间）。因此，<strong>对vector的任何操作，一旦引起空间重新配置，指向原vector的所有迭代器就失效了！</strong></p>
+<h2 id="测试程序"><a href="#测试程序" class="headerlink" title="测试程序"></a>测试程序</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line">	<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; iv(<span class="number">2</span>,<span class="number">9</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 2;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 2;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">1</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 3;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 4;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">2</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 4;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 4;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">3</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 5;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">4</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 6;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;iv.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;iv[i]&lt;&lt;<span class="string">' '</span>;		<span class="comment">//9 9 1 2 3 4</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">	iv.push_back(<span class="number">5</span>);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 7;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	iv.pop_back();</span><br><span class="line">	iv.pop_back();</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 5;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::iterator ivite = find(iv.begin(),iv.end(),<span class="number">1</span>);</span><br><span class="line">	<span class="keyword">if</span>(ivite != iv.end())	</span><br><span class="line">		iv.erase(ivite);</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 4;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;iv.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;iv[i]&lt;&lt;<span class="string">' '</span>;		<span class="comment">//9 9 2 3 </span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;	</span><br><span class="line">	ivite = find(iv.begin(),iv.end(),<span class="number">2</span>);</span><br><span class="line">	<span class="keyword">if</span>(ivite != iv.end())	</span><br><span class="line">		iv.insert(ivite,<span class="number">3</span>,<span class="number">7</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 7;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;</span></span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;iv.size();i++)</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;iv[i]&lt;&lt;<span class="string">' '</span>;		<span class="comment">//9 9 7 7 7 2 3</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">	iv.clear();</span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.size()&lt;&lt;<span class="built_in">endl</span>;		<span class="comment">//size = 0;</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;iv.capacity()&lt;&lt;<span class="built_in">endl</span>;	<span class="comment">//capacity = 8;	</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参考书籍：《STL源码剖析 侯捷》<br>注：<br>    书中关于find（）函数结果中，如果没有找到指定元素，应当返回ite == end(),并非 ite == 0 。博客中已进行修正</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/STL/" rel="tag"># STL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/26/红黑树/" rel="next" title="红黑树详解">
+                <i class="fa fa-chevron-left"></i> 红黑树详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/29/ǳ̸list/" rel="prev" title="浅谈list">
+                浅谈list <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明"><span class="nav-number">2.</span> <span class="nav-text">声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迭代器"><span class="nav-number">3.</span> <span class="nav-text">迭代器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vector数据结构"><span class="nav-number">4.</span> <span class="nav-text">vector数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用成员函数"><span class="nav-number">5.</span> <span class="nav-text">常用成员函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试程序"><span class="nav-number">6.</span> <span class="nav-text">测试程序</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

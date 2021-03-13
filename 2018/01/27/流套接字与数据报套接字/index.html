@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="套接字,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="流套接字流套接字（SOCK_STREAM）提供了一个可靠的双向的字节流通信信道。其特点为：  可靠的：表示可以保证发送者传输的数据会完整无缺的到达接收应用程序或收到一个传输失败的通知。 双向的：表示数据可以在两个socket之间的任意方向上传输。 字节流：表示与管道一样不存在消息边界的概念。">
+<meta name="keywords" content="套接字">
+<meta property="og:type" content="article">
+<meta property="og:title" content="流套接字与数据报套接字">
+<meta property="og:url" content="www.chenghuili.cn/2018/01/27/流套接字与数据报套接字/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="流套接字流套接字（SOCK_STREAM）提供了一个可靠的双向的字节流通信信道。其特点为：  可靠的：表示可以保证发送者传输的数据会完整无缺的到达接收应用程序或收到一个传输失败的通知。 双向的：表示数据可以在两个socket之间的任意方向上传输。 字节流：表示与管道一样不存在消息边界的概念。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-06-27T07:55:39.309Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="流套接字与数据报套接字">
+<meta name="twitter:description" content="流套接字流套接字（SOCK_STREAM）提供了一个可靠的双向的字节流通信信道。其特点为：  可靠的：表示可以保证发送者传输的数据会完整无缺的到达接收应用程序或收到一个传输失败的通知。 双向的：表示数据可以在两个socket之间的任意方向上传输。 字节流：表示与管道一样不存在消息边界的概念。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/01/27/流套接字与数据报套接字/">
+
+
+
+
+
+  <title>流套接字与数据报套接字 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/01/27/流套接字与数据报套接字/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">流套接字与数据报套接字</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-27T15:58:01+08:00">
+                2018-01-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/01/27/流套接字与数据报套接字/" class="leancloud_visitors" data-flag-title="流套接字与数据报套接字">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="流套接字"><a href="#流套接字" class="headerlink" title="流套接字"></a>流套接字</h1><p>流套接字（SOCK_STREAM）提供了一个可靠的双向的字节流通信信道。其特点为：</p>
+<ul>
+<li><strong>可靠的</strong>：表示可以保证发送者传输的数据会完整无缺的到达接收应用程序或收到一个传输失败的通知。</li>
+<li><strong>双向的</strong>：表示数据可以在两个socket之间的任意方向上传输。</li>
+<li><strong>字节流</strong>：表示与管道一样不存在消息边界的概念。<a id="more"></a>
+简单的说，一个流套接字类似于使用一对允许在两个应用程序之间进行双向通信的管道，其差别在于socket可以在网络上进行通信。</li>
+</ul>
+<p><em>流套接字的运作与电话系统类似：</em></p>
+<ol>
+<li>socket()系统调用将会创建一个socket，这等价于安装一个电话。为使两个应用程序能够通信，每个应用程序都必须要创建一个socket。</li>
+<li><p>通过流套接字通信类似于一个电话呼叫。一个应用程序在进行通信之前必须要将其socket连接到另一个应用程序的socket上。连接过程为：<br>a)一个应用程序调用bind以将socket绑定到一个众所周知的地址上，然后调用listen通知内核，它接受接入连接的意愿。<em>这类似于硬件有一个为众人所知的电话号码，并确保打开了电话，这样人们就可以打进电话了。</em><br>b）其他应用程序通过调用connect建立连接，同时指定需要连接的socket地址。<em>这类似于拨某人的电话号码。</em><br>c)调用listen的应用程序使用accept接受连接。<em>这类似于在电话响时拿起电话，如果在对等应用程序调用connect之前执行了accept，那么accept就会阻塞</em></p>
+</li>
+<li><p>一旦建立了一个连接之后就可以在应用程序之间进行双向数据传输直到其中一个使用close关闭连接为止。通信是通过传统的read和write系统调用或send和recv来完成的。</p>
+</li>
+</ol>
+<p>流套接字分为主动和被动两种</p>
+<ul>
+<li>在默认情况下，使用socket()创建的socket是主动的。一个主动的socket可用在connect调用中来建立一个到一个被动socket的连接。这被称为执行一个主动地打开。</li>
+<li>一个被动的socket是一个通过调用listen以标记成允许接入连接的socket。接受一个接入连接通常称为执行一个被动的打开。</li>
+</ul>
+<p>一个socket可以使用close系统调用来关闭或在应用程序终止之后关闭。之后当对等应用程序试图从连接的另一端读取数据时将会收到文件结束（当所有缓冲数据都被读取之后）。如果对等应用程序试图向其socket写入数据，那么它就会收到一个SIGPIPE信号，并且系统调用会返回EPIPE错误。</p>
+<h1 id="数据报套接字"><a href="#数据报套接字" class="headerlink" title="数据报套接字"></a>数据报套接字</h1><p>数据报套接字（SOCK_DGRAM）允许数据以数据报的消息的形式进行交换。在数据报套接字中，消息边界得到了保留，但是数据传输是不可靠的，消息的到达可能是无序的、重复的、或者说根本无法到达。与流套接字不同，数据报套接字是无连接socket。即数据报socket在使用时无需与另一个socket建立连接。<br><em>数据报套接字类似于邮件系统：</em></p>
+<ol>
+<li>所有要发送和接收数据报的应用程序都需要使用socket创建一个数据报套接字，<em>socket系统调用等价于创建一个邮箱</em>。</li>
+<li>为允许另一个应用程序发送其数据报，一个应用程序需要使用bind将其socket绑定到一个众所周知的地址上。一般服务器会这么做，客户端会通过向该地址发送一个数据报来发起通信。</li>
+<li>要发送一个数据报，一个应用程序需要调用sendto(),它接收的其中一个参数是数据报发送到的socket地址。<em>这类似于将收信人的写到信件上并投递这封信。</em></li>
+<li>为接收一个数据报，一个应用程序需要调用recvfrom(),它在没有数据报到达时阻塞。由于recvfrom允许获取发送者的地址，因此可以在需要的时候发送一个响应。</li>
+<li>当不再需要socket时，应用程序需要使用close关闭socket。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="keyword">ssize_t</span> recvfrom(<span class="keyword">int</span> sockfd,<span class="keyword">void</span> *buffer,<span class="keyword">size_t</span> length,<span class="keyword">int</span> flags,</span><br><span class="line">	              struct sockaddr *src_addr,<span class="keyword">socklen_t</span> *addrlen);</span><br><span class="line"><span class="comment">//成功返回接收到的字节，EOF返回0，出错返回-1。</span></span><br><span class="line"><span class="keyword">ssize_t</span> sendto(<span class="keyword">int</span> sockfd,<span class="keyword">void</span> *buffer,<span class="keyword">size_t</span> length,<span class="keyword">int</span> flags,</span><br><span class="line">	              <span class="keyword">const</span> struct sockaddr *dest_addr,<span class="keyword">socklen_t</span> *addrlen);</span><br><span class="line"><span class="comment">//成功返回发送的字节数，出错返回-1。</span></span><br></pre></td></tr></table></figure>
+<p>这两个函数的返回值和前三个参数与read和write的返回值和响应参数类似。第四个参数flags是一个位掩码，它控制着socket特定的IO特性。src_addr和addrlen参数被用来获取或指定与之通信的对等socket的地址与地址长度。<br>不管length参数值是什么，recvfrom只会从一个数据报socket中读取一条消息。如果消息的大小超过length字节，那么消息会被截断为length字节。</p>
+<p>尽管数据报套接字时无连接的，但也可以在数据报套接字上使用connect，这回导致内核记录这个socket的对等socket的地址。当一个数据报socket已连接后：</p>
+<ul>
+<li>数据报的发送可在socket上使用write或send来完成并且会自动被发送到同一的对等socket上。与sendto一样，每个write调用会发送一个独立的数据报。</li>
+<li>在这个socket上只能读取由对等socket发送的数据报。</li>
+</ul>
+<p>注意：connect的作用对数据报socket是不对称的。以上所述的两点只适用于调用了connect数据报socket，并不适用于它连接的远程socket（除非对等应用程序在其socket上也调用了connect）。</p>
+<hr>
+<p>参考资料：<br>《linux/UNIX系统编程手册 下》（tlpi）</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/套接字/" rel="tag"># 套接字</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/24/平衡二叉树（AVL树）详解/" rel="next" title="平衡二叉树（AVL树）详解">
+                <i class="fa fa-chevron-left"></i> 平衡二叉树（AVL树）详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/02/03/深入分析fork、vfork与clone/" rel="prev" title="深入分析fork、vfork与clone">
+                深入分析fork、vfork与clone <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流套接字"><span class="nav-number">1.</span> <span class="nav-text">流套接字</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据报套接字"><span class="nav-number">2.</span> <span class="nav-text">数据报套接字</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

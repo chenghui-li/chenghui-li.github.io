@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="libco,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言对于协程具体的概念谷歌百度可以搜出一堆，我简单说一下我的理解：协程=函数调用+线程=用户级线程。当然这个公式适用于libco，或者说适用于非对称协程。">
+<meta name="keywords" content="libco">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libco协程库学习笔记">
+<meta property="og:url" content="www.chenghuili.cn/2018/12/04/libco协程库学习笔记/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="前言对于协程具体的概念谷歌百度可以搜出一堆，我简单说一下我的理解：协程=函数调用+线程=用户级线程。当然这个公式适用于libco，或者说适用于非对称协程。">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-12-27T13:25:43.184Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="libco协程库学习笔记">
+<meta name="twitter:description" content="前言对于协程具体的概念谷歌百度可以搜出一堆，我简单说一下我的理解：协程=函数调用+线程=用户级线程。当然这个公式适用于libco，或者说适用于非对称协程。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/12/04/libco协程库学习笔记/">
+
+
+
+
+
+  <title>libco协程库学习笔记 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/12/04/libco协程库学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">libco协程库学习笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-12-04T15:14:11+08:00">
+                2018-12-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/12/04/libco协程库学习笔记/" class="leancloud_visitors" data-flag-title="libco协程库学习笔记">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于协程具体的概念谷歌百度可以搜出一堆，我简单说一下我的理解：协程=函数调用+线程=用户级线程。当然这个公式适用于libco，或者说适用于非对称协程。<br><a id="more"></a><br>为什么会有协程的存在？</p>
+<p>因为线程切换开销太大。</p>
+<p>但是线程切换不是几条指令就可以完成嘛？</p>
+<p>这里的开销还包括陷入内核进行线程调度的开销，简单的说，就是执行系统调用的开销。</p>
+<p>所以结论就有了：<strong>协程的切换和创建不需要经过系统调用就可以实现，并且用户随时可以切出，下次切入时可以继续从切出的位置执行</strong>。</p>
+<h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><p>首先看下协程数据结构的源码：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stCoRoutine_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	stCoRoutineEnv_t *env;    <span class="comment">///协程执行环境</span></span><br><span class="line">	<span class="keyword">pfn_co_routine_t</span> pfn;     <span class="comment">///协程执行的函数</span></span><br><span class="line">	<span class="keyword">void</span> *arg;  			  <span class="comment">///协程执行函数传入的参数</span></span><br><span class="line">	<span class="keyword">coctx_t</span> ctx;			  <span class="comment">///协程切换时用于保存CPU上下文</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">char</span> cStart;			  <span class="comment">///是否第一次运行</span></span><br><span class="line">	<span class="keyword">char</span> cEnd;				  <span class="comment">///</span></span><br><span class="line">	<span class="keyword">char</span> cIsMain;			  <span class="comment">///是不是main协程</span></span><br><span class="line">	<span class="keyword">char</span> cEnableSysHook;	  <span class="comment">///</span></span><br><span class="line">	<span class="keyword">char</span> cIsShareStack;		  <span class="comment">///是否使用共享栈</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">void</span> *pvEnv;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//char sRunStack[ 1024 * 128 ];</span></span><br><span class="line">	stStackMem_t* stack_mem;    <span class="comment">///运行时栈</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="comment">//save satck buffer while confilct on same stack_buffer;</span></span><br><span class="line">	<span class="keyword">char</span>* stack_sp; </span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> save_size;</span><br><span class="line">	<span class="keyword">char</span>* save_buffer;</span><br><span class="line"></span><br><span class="line">	stCoSpec_t aSpec[<span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>env是隶属于协程所在线程的一个数据结构，主要用来保存协程的调用链以及线程调度协程的调度器，每一个协程都指向这个协程环境结构。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stCoRoutineEnv_t</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	stCoRoutine_t *pCallStack[ <span class="number">128</span> ];     <span class="comment">///存放挂起的协程的栈</span></span><br><span class="line">	<span class="keyword">int</span> iCallStackSize;     <span class="comment">///栈中元素个数</span></span><br><span class="line">	stCoEpoll_t *pEpoll;    <span class="comment">///调度器</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">//for copy stack log lastco and nextco</span></span><br><span class="line">	stCoRoutine_t* pending_co;</span><br><span class="line">	stCoRoutine_t* occupy_co;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>协程环境结构中有一个pCallStack栈，它就是用来保存协程的调用关系，可以看出数组大小固定上限128，即线程最多调度128个协程，换句话说，调用深度最多128层。每当运行一个新的协程，就压入栈中，挂起一个协程就弹出，需要维护使得栈顶的协程总是正在运行。</p>
+<p>下面两个指针用于记录协程切换时占有共享栈和将要切换运行的协程，共享栈的内容后面会说。</p>
+<p>继续看协程结构，里面有一个stack_mem指针，即协程的运行时栈，用于保存协程运行中发生的函数调用关系和函数中创建的临时变量。但并不是说每一个协程都给创建一个128kb的栈空间，这里又涉及到共享栈的应用，可以大大节省内存空间的使用。</p>
+<p>libco中有一个主协程的存在，也就是执行main函数的协程，它是在第一次调用co_create创建一个协程的时候创建的，和env一起分配。当它创建并运行协程co1时，将co1压栈，co1创建并运行co2时，co2压栈。co2调用yield让出CPU时，只能让给co1，co2出栈，co1让出CPU时，只能让给main协程，co1出栈。</p>
+<p>co_create 只负责创建一个协程结构并初始化，此时协程还没有运行，需要注意的是，在协程结构中的栈并不是进程中的栈空间，而是重新malloc出来的位于进程堆中的空间。</p>
+<h2 id="co-resume"><a href="#co-resume" class="headerlink" title="co_resume"></a>co_resume</h2><p>co_resume 负责将CPU从调用者协程切换到被调用者协程。<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">void co_resume( stCoRoutine_t *co )</span><br><span class="line">&#123;</span><br><span class="line">	<span class="function"><span class="title">stCoRoutineEnv_t</span> *env = co-&gt;</span>env;</span><br><span class="line">	<span class="function"><span class="title">stCoRoutine_t</span> *lpCurrRoutine = env-&gt;</span><span class="function"><span class="title">pCallStack</span>[ env-&gt;</span>iCallStackSize - <span class="number">1</span> ];</span><br><span class="line">	<span class="function"><span class="title">if</span>( !co-&gt;</span>cStart )</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="function"><span class="title">coctx_make</span>( &amp;co-&gt;</span>ctx,(coctx_pfn_t)CoRoutineFunc,co,<span class="number">0</span> );</span><br><span class="line">		<span class="function"><span class="title">co</span>-&gt;</span>cStart = <span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="title">env</span>-&gt;</span><span class="function"><span class="title">pCallStack</span>[ env-&gt;</span>iCallStackSize++ ] = co;</span><br><span class="line">	co_swap( lpCurrRoutine, co );</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先获取到目前正在运行的协程（调用者协程），判断即将运行的协程（被调用者协程）是不是第一次运行，如果是第一次运行，那么需要初始化ctx结构，即用来保存CPU切换的上下文。然后将即将运行的协程压栈，调用co_swap切换CPU到co。</p>
+<h2 id="co-yield"><a href="#co-yield" class="headerlink" title="co_yield"></a>co_yield</h2><p>co_yield负责将CPU从被调用者协程切换到调用者协程。<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">void co_yield_env( stCoRoutineEnv_t *env )</span><br><span class="line">&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="title">stCoRoutine_t</span> *last = env-&gt;</span><span class="function"><span class="title">pCallStack</span>[ env-&gt;</span>iCallStackSize - <span class="number">2</span> ];</span><br><span class="line">	<span class="function"><span class="title">stCoRoutine_t</span> *curr = env-&gt;</span><span class="function"><span class="title">pCallStack</span>[ env-&gt;</span>iCallStackSize - <span class="number">1</span> ];</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="title">env</span>-&gt;</span>iCallStackSize--;</span><br><span class="line"></span><br><span class="line">	co_swap( curr, last);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void co_yield_ct()</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">	co_yield_env( co_get_curr_thread_env() );</span><br><span class="line">&#125;</span><br><span class="line">void co_yield( stCoRoutine_t *co )</span><br><span class="line">&#123;</span><br><span class="line">	<span class="function"><span class="title">co_yield_env</span>( co-&gt;</span>env );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>逻辑很简单，不再赘述，需要说的是，一般应用中会调用co_yield_ct函数来进行CPU的让出，因为肯定会让给调用当前协程的调用协程，也就是env栈中的当前协程的前一个协程，所以即使调用co_yield让出CPU给指定协程co，也无济于事。</p>
+<h2 id="co-swap"><a href="#co-swap" class="headerlink" title="co_swap"></a>co_swap</h2><p>co_swap把将要运行的协程的上下文从sava_buffer加载到其使用的共享栈/私有栈中，将CPU从当前运行的协程curr上下文切换到pending_co上下文中<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">void co_swap(stCoRoutine_t* curr, stCoRoutine_t* pending_co)</span><br><span class="line">&#123;</span><br><span class="line"> 	stCoRoutineEnv_t* env = co_get_curr_thread_env();</span><br><span class="line"></span><br><span class="line">	<span class="comment">//get curr stack sp</span></span><br><span class="line">	char c;</span><br><span class="line">	<span class="function"><span class="title">curr</span>-&gt;</span>stack_sp= &amp;c;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="title">if</span> (!pending_co-&gt;</span>cIsShareStack)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="function"><span class="title">env</span>-&gt;</span>pending_co = NULL;</span><br><span class="line">		<span class="function"><span class="title">env</span>-&gt;</span>occupy_co = NULL;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> </span><br><span class="line">	&#123;</span><br><span class="line">		<span class="function"><span class="title">env</span>-&gt;</span>pending_co = pending_co;</span><br><span class="line">		<span class="comment">//get last occupy co on the same stack mem</span></span><br><span class="line">		<span class="function"><span class="title">stCoRoutine_t</span>* occupy_co = pending_co-&gt;</span><span class="function"><span class="title">stack_mem</span>-&gt;</span>occupy_co;</span><br><span class="line">		<span class="comment">//set pending co to occupy thest stack mem;</span></span><br><span class="line">		<span class="function"><span class="title">pending_co</span>-&gt;</span><span class="function"><span class="title">stack_mem</span>-&gt;</span>occupy_co = pending_co;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="title">env</span>-&gt;</span>occupy_co = occupy_co;</span><br><span class="line">		<span class="keyword">if</span> (occupy_co &amp;&amp; occupy_co != pending_co)</span><br><span class="line">		&#123;</span><br><span class="line">			save_stack_buffer(occupy_co);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//swap context</span></span><br><span class="line">	<span class="function"><span class="title">coctx_swap</span>(&amp;(curr-&gt;</span><span class="function"><span class="title">ctx</span>),&amp;(pending_co-&gt;</span>ctx) );</span><br><span class="line"></span><br><span class="line">	<span class="comment">//stack buffer may be overwrite, so get again;</span></span><br><span class="line">	stCoRoutineEnv_t* curr_env = co_get_curr_thread_env();</span><br><span class="line">	<span class="function"><span class="title">stCoRoutine_t</span>* update_occupy_co =  curr_env-&gt;</span>occupy_co;</span><br><span class="line">	<span class="function"><span class="title">stCoRoutine_t</span>* update_pending_co = curr_env-&gt;</span>pending_co;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> (update_occupy_co &amp;&amp; update_pending_co &amp;&amp; update_occupy_co != update_pending_co)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//resume stack buffer</span></span><br><span class="line">		<span class="function"><span class="title">if</span> (update_pending_co-&gt;</span><span class="function"><span class="title">save_buffer</span> &amp;&amp; update_pending_co-&gt;</span>save_size &gt; <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="function"><span class="title">memcpy</span>(update_pending_co-&gt;</span><span class="function"><span class="title">stack_sp</span>, update_pending_co-&gt;</span><span class="function"><span class="title">save_buffer</span>, update_pending_co-&gt;</span>save_size);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<hr>
+<p>参考资料：<br><a href="https://github.com/Tencent/libco" target="_blank" rel="noopener">libco协程库</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/libco/" rel="tag"># libco</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/10/回首求职路/" rel="next" title="回首求职路">
+                <i class="fa fa-chevron-left"></i> 回首求职路
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/31/Goodbye-2018/" rel="prev" title="Goodbye 2018">
+                Goodbye 2018 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分析"><span class="nav-number">2.</span> <span class="nav-text">分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#co-resume"><span class="nav-number">2.1.</span> <span class="nav-text">co_resume</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#co-yield"><span class="nav-number">2.2.</span> <span class="nav-text">co_yield</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#co-swap"><span class="nav-number">2.3.</span> <span class="nav-text">co_swap</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

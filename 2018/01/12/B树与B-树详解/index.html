@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="数据结构,B树,B+树,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="B树概述B树与B+树其实还是一种查找技术，但是平衡二叉树的时间可达O(logn)了呀，无论比较次数还是查找次数都是最小的，为啥还要有B树的存在（这是我在第一次看到B树时的疑惑….too young too naive！）。">
+<meta name="keywords" content="数据结构,B树,B+树">
+<meta property="og:type" content="article">
+<meta property="og:title" content="B树与B+树详解">
+<meta property="og:url" content="www.chenghuili.cn/2018/01/12/B树与B-树详解/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="B树概述B树与B+树其实还是一种查找技术，但是平衡二叉树的时间可达O(logn)了呀，无论比较次数还是查找次数都是最小的，为啥还要有B树的存在（这是我在第一次看到B树时的疑惑….too young too naive！）。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E7%A3%81%E7%9B%98.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%A0%91%E4%B8%8E%E4%BA%8C%E5%8F%89%E6%A0%91/B%E6%A0%91%E6%9F%A5%E6%89%BE.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E6%8F%92%E5%85%A5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E5%88%A0%E9%99%A4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/B%2B%E6%A0%91.jpg">
+<meta property="og:updated_time" content="2018-01-12T08:12:48.496Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="B树与B+树详解">
+<meta name="twitter:description" content="B树概述B树与B+树其实还是一种查找技术，但是平衡二叉树的时间可达O(logn)了呀，无论比较次数还是查找次数都是最小的，为啥还要有B树的存在（这是我在第一次看到B树时的疑惑….too young too naive！）。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E7%A3%81%E7%9B%98.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/01/12/B树与B-树详解/">
+
+
+
+
+
+  <title>B树与B+树详解 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/01/12/B树与B-树详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">B树与B+树详解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-12T23:33:02+08:00">
+                2018-01-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据结构与算法/" itemprop="url" rel="index">
+                    <span itemprop="name">数据结构与算法</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/01/12/B树与B-树详解/" class="leancloud_visitors" data-flag-title="B树与B+树详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="B树"><a href="#B树" class="headerlink" title="B树"></a>B树</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>B树与B+树其实还是一种查找技术，但是平衡二叉树的时间可达O(logn)了呀，无论比较次数还是查找次数都是最小的，为啥还要有B树的存在（这是我在第一次看到B树时的疑惑….too young too naive！）。<br><a id="more"></a><br>好多的数据结构与数据处理其实都是在内存中进行的，考虑的都是内存中的运算时间复杂度。但如果需要操作的数据集非常大，比如数据库中的数据表，硬盘中上万个文件等数据量比较大的时候，索引的大小可能有几个G甚至更多，显然不可能把整个索引都加载到内存，能做的只有逐一加载每一个磁盘页，这里的磁盘页对应着索引树的结点。此时就需要不断的从外存将数据调入内存进行处理了。<br>我们都知道访问外存要比访问内存慢的多。也就是说访问一次内存的时间相对于访问一次外存的时间可以忽略不计。所以现在的目的就是要尽可能的减小访问外存的次数。<br>二叉树，AVL树，RB-tree，等等数据结构每个结点只能用有两个孩子，并且自身只能存储一个元素。在元素非常多的时候，树的高度非常大。这就使得访问外存次数非常多。<br>所以，多路查找树诞生了！<br><strong>多路查找树的每个结点的孩子可以多于两个，并且每个结点可以存储多个元素</strong>。其特征之一就是让树尽可能的矮胖，从而减少磁盘IO次数。<br>B树是一种多路平衡查找树，它的每一个结点最多包含k个孩子，k被称为B树的阶。k的大小取决于磁盘页的大小。<img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E7%A3%81%E7%9B%98.jpg" alt><br>一个m阶B树具有如下特征：</p>
+<ul>
+<li>如果根结点不是叶子结点，则其至少有两棵子树</li>
+<li>树中每个非终端结点都包含k-1个元素和k个孩子（m/2&lt;=k&lt;=m）</li>
+<li>每个叶子结点都包含k-1个元素（m/2&lt;=k&lt;=m）</li>
+<li>所有叶子结点都位于同一层，，并且不携带信息（可以看做是查找失败的标记）</li>
+<li>所有分支结点包含下列信息数据（n,A0,K1,A1,K2…Kn,An）,其中：Ki（i=1,2,3…n）为关键字且Ki&lt;K(i+1)；Ai（i=0,2…n）为指向子树根结点的指针，且指针A(i-1)所指子树中所有结点的关键字均小于Ki，An所指子树中的关键字均大于Kn，n（ceil(m/2)-1&lt;=n&lt;=m-1）为关键字的个数</li>
+</ul>
+<p>例如：<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/%E6%A0%91%E4%B8%8E%E4%BA%8C%E5%8F%89%E6%A0%91/B%E6%A0%91%E6%9F%A5%E6%89%BE.png" alt><br>查找7时，首先从外存中选中3 5 8所在的结点调入内容，查找后发现7并不在其中，但是在5和8之间，因此通过A2再读取6 7 结点，查找到所需元素。<br><strong>可见B树的查找过程是一个顺指针查找结点和在结点的关键字中进行查找交叉进行的过程</strong></p>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><h3 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h3><p>在B树上进行查找包含两种操作：</p>
+<ol>
+<li>在B树中找结点</li>
+<li>在结点中找关键字</li>
+</ol>
+<p>由于B树通常存储在磁盘上，则前一操作是在磁盘上进行的，在磁盘上找到指针所指结点，然后调入内存；后一操作是在内存中进行，利用二分查找查询。显然在磁盘上进行一次查找比在内存中的查找耗时要多的多。因此磁盘IO次数，即B树的深度是决定B树查找效率的首要因素。<br>现考虑最坏情况，即待查结点在B树上的最大层次数。也就是含N个关键字的m阶B树的最大深度是多少<br>类似AVL树的讨论，先看深度为l+1的m阶B树所具有的最少结点数。<br>根据B树定义，第一层至少有1个结点，第二层至少有2个结点，由于除根结点外，每个非终端结点至少有ceil（m/2）棵子树，故第三层有2*ceil(m/2)个结点，第四层有2*ceil(m/2)\^2个结点。第l+1层至少有2*ceil(m/2)^(l-1)个结点。</p>
+<p>若m阶B树中有N个关键字，则叶子结点为N+1。即：<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">N+<span class="number">1</span>&gt;=<span class="number">2</span>*ceil(m/<span class="number">2</span>)^(l<span class="number">-1</span>)</span><br><span class="line">l<span class="number">-1</span>&lt;=log~ceil(m/<span class="number">2</span>)~(N+<span class="number">1</span>)/<span class="number">2</span>    <span class="comment">//ceil(m/2)是底数，（N+1）/2是指数</span></span><br><span class="line">l&lt;=log~ceil(m/<span class="number">2</span>)~(N+<span class="number">1</span>)/<span class="number">2</span>+<span class="number">1</span></span><br></pre></td></tr></table></figure></p>
+<p>也就是说，在含有N个关键字的B树上进行查找时，从根结点到目标结点路径上涉及的关键字不超过log~ceil(m/2)~(N+1)/2+1。</p>
+<h3 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h3><p>由于B树定义每个结点的子树至少为ceil（m/2）个，故每个结点所含有的关键字至少为ceil（m/2）-1个至多m-1个。与二叉树的插入不同，二叉树的插入是每次插入一个叶子结点，而B树是在最底层的某个非终端结点中添加一个关键字，如果该结点的关键字数量不超过m-1，则直接插入完成；如果大于m-1，则需要对该结点进行分裂，将中间的关键字合并到双亲结点中，如果双亲结点关键字数量也超过m-1，继续向上合并，如果根结点也超过m-1，则产生一个新的根结点，即原B树长高。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E6%8F%92%E5%85%A5.png" alt></p>
+<h3 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h3><p>设在m阶B树中删除关键字key，先定为key所在结点的指针q，假定key是结点q中的第i个关键字Ki，若结点q不是终端结点，则用Ai所指的子树中的最小值x来替换Ki，由于x所在结点一定是终端结点，这样，删除问题就归结为在终端结点中删除关键字。<br>如果终端接结点的关键字数量大于ceil（m/2）-1，则直接删除，否则不符合B树定义，需要分两种情况处理：</p>
+<ol>
+<li>兄弟够借。查看相邻兄弟结点，如果兄弟结点有足够多的关键码（大于ceil（m/2）-1），就从兄弟结点中借来一个关键字，为保持B树特性，将借来的关键字上移到被删结点的双亲结点中，同时将双亲结点中的相应关键字下移到被删结点中。</li>
+<li>兄弟不够借。如果没有一个兄弟结点可以把关键字借给被删结点，那么被删结点就需要把它的一个关键字让给其一个兄弟结点，即执行合并操作，并且把这个空节点删除。合并后被删结点的双亲少了一个结点，所以要把双亲结点的一个关键字下移到合并结点中去，如果被删结点的双亲结点中的关键字的个数没有下溢，则合并过程结点，否则，双亲结点也要进行借关键字或合并结点。如果合并过程上传到根结点，如果根结点的两个孩子结点合并到一起，则B树就会减少一层。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/%E5%88%A0%E9%99%A4.png" alt></li>
+</ol>
+<h1 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h1><p>B+树是应文件系统所需而出的一种B树的变形树，它有着比B树更加高效的查询操作（跪了！）。<br>一棵m阶的B+树与B树的差异在于：</p>
+<ul>
+<li>有n棵子树的结点中含有n个关键字（B树是n-1个）</li>
+<li>所有的叶子结点中包含了全部关键字的信息，以及指向这些关键字的指针，且叶子结点本身依关键字的大小自小而大顺序链接。（B树中的叶子结点是查询失败的标志）</li>
+<li>所有的非终端结点可以看成是索引部分，结点中仅含有其子树中的最大（最小）关键字（B 树的非终节点也包含需要查找的有效信息）<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/master/B%E6%A0%91/B%2B%E6%A0%91.jpg" alt></li>
+</ul>
+<h2 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h2><blockquote>
+<p><em>1) B+tree的磁盘读写代价更低</em></p>
+</blockquote>
+<p>B+tree的内部结点并没有指向关键字具体信息的指针。因此其内部结点相对B 树更小。如果把所有同一内部结点的关键字存放在同一盘块中，那么盘块所能容纳的关键字数量也越多。一次性读入内存中的需要查找的关键字也就越多。相对来说IO读写次数也就降低了。</p>
+<p>举个例子，假设磁盘中的一个盘块容纳16bytes，而一个关键字2bytes，一个关键字具体信息指针2bytes。一棵9阶B-tree(一个结点最多8个关键字)的内部结点需要2个盘快。而<strong><strong>B<sup>+ </sup></strong></strong>树内部结点只需要1个盘快。当需要把内部结点读入内存中的时候，B 树就比B+树多一次盘块查找时间(在磁盘中就是盘片旋转的时间)。</p>
+<blockquote>
+<p><em>2) B+tree的查询效率更加稳定</em></p>
+</blockquote>
+<p>由于非终结点并不是最终指向文件内容的结点，而只是叶子结点中关键字的索引。所以任何关键字的查找必须走一条从根结点到叶子结点的路。所有关键字查询的路径长度相同，导致每一个数据的查询效率相当。</p>
+<p>B+树的查找类似于B树，B+树的插入仅在叶子结点上进行，当结点中的关键字个数大于m时要分裂成两个结点，它们所含关键字的个数都为ceil（（m+1）/2），并且它们的双亲结点中的应同时包含这两个结点的最大关键字。</p>
+<p>B+树的删除也仅在叶子结点中进行，当叶子结点中的最大关键字被删除时，其在非终端结点中的值可以作为一个分界关键字存在。如果因为删除而使得结点中的关键字个数少于ceil（m/2）时，其和兄弟结点的合并过程类似于B树。</p>
+<hr>
+<p>如果没有看明白可以参考下<a href="http://blog.csdn.net/v_july_v/article/details/6530142" target="_blank" rel="noopener">这篇博客</a></p>
+<hr>
+<p>参考资料：<br>《数据结构——严蔚敏》<br>《数据结构——从概念到C实现》<br>《大话数据结构——程杰》</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/数据结构/" rel="tag"># 数据结构</a>
+          
+            <a href="/tags/B树/" rel="tag"># B树</a>
+          
+            <a href="/tags/B-树/" rel="tag"># B+树</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/11/wait，waitpid，waitid，wait3，wait4函数详解/" rel="next" title="wait，waitpid，waitid，wait3，wait4函数详解">
+                <i class="fa fa-chevron-left"></i> wait，waitpid，waitid，wait3，wait4函数详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/13/散列表（hash表）详解/" rel="prev" title="散列表（hash表）详解">
+                散列表（hash表）详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#B树"><span class="nav-number">1.</span> <span class="nav-text">B树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分析"><span class="nav-number">1.2.</span> <span class="nav-text">分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查找"><span class="nav-number">1.2.1.</span> <span class="nav-text">查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插入"><span class="nav-number">1.2.2.</span> <span class="nav-text">插入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除"><span class="nav-number">1.2.3.</span> <span class="nav-text">删除</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#B-树"><span class="nav-number">2.</span> <span class="nav-text">B+树</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分析-1"><span class="nav-number">2.1.</span> <span class="nav-text">分析</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

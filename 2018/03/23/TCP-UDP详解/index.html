@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="TCP,UDP,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述网络协议栈一般分为5层，从下到上依次为：物理层，数据链路层，网络层，运输层，应用层。TCP和UDP都是运输层的协议，IP协议能把源主机A发送出去的分组，按照首部中的目的地址送交到目的主机B，简单的说，IP层通信的两端是主机和主机。但是真正通信的不是主机而是主机上的应用进程。通常一台主机有多个应用进程和另一台主机的多个应用进程之间通信。TCP和UDP协议就是来满足这种需求的。">
+<meta name="keywords" content="TCP,UDP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&amp;UDP详解">
+<meta property="og:url" content="www.chenghuili.cn/2018/03/23/TCP-UDP详解/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="概述网络协议栈一般分为5层，从下到上依次为：物理层，数据链路层，网络层，运输层，应用层。TCP和UDP都是运输层的协议，IP协议能把源主机A发送出去的分组，按照首部中的目的地址送交到目的主机B，简单的说，IP层通信的两端是主机和主机。但是真正通信的不是主机而是主机上的应用进程。通常一台主机有多个应用进程和另一台主机的多个应用进程之间通信。TCP和UDP协议就是来满足这种需求的。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/UDP.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%852.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%B5%81%E6%B0%B4%E7%BA%BF.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%85%A2%E5%BC%80%E5%A7%8B.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E5%BF%AB%E9%87%8D%E4%BC%A0.jpg">
+<meta property="og:updated_time" content="2019-06-27T07:52:11.979Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP&amp;UDP详解">
+<meta name="twitter:description" content="概述网络协议栈一般分为5层，从下到上依次为：物理层，数据链路层，网络层，运输层，应用层。TCP和UDP都是运输层的协议，IP协议能把源主机A发送出去的分组，按照首部中的目的地址送交到目的主机B，简单的说，IP层通信的两端是主机和主机。但是真正通信的不是主机而是主机上的应用进程。通常一台主机有多个应用进程和另一台主机的多个应用进程之间通信。TCP和UDP协议就是来满足这种需求的。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/UDP.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/03/23/TCP-UDP详解/">
+
+
+
+
+
+  <title>TCP&UDP详解 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/03/23/TCP-UDP详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP&UDP详解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-23T11:18:54+08:00">
+                2018-03-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/03/23/TCP-UDP详解/" class="leancloud_visitors" data-flag-title="TCP&UDP详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>网络协议栈一般分为5层，从下到上依次为：<strong>物理层，数据链路层，网络层，运输层，应用层</strong>。TCP和UDP都是运输层的协议，IP协议能把源主机A发送出去的分组，按照首部中的目的地址送交到目的主机B，简单的说，IP层通信的两端是主机和主机。但是真正通信的不是主机而是主机上的应用进程。通常一台主机有多个应用进程和另一台主机的多个应用进程之间通信。TCP和UDP协议就是来满足这种需求的。<br><a id="more"></a><br>应用层的所有应用进程都可以通过运输层再传输到IP层，这就是复用。运输层从IP层收到发送给各个应用进程的数据后，必须分别交付各指明的应用进程，这就是分用。显然给每个应用进程赋予一个非常明确的标志是至关重要的。解决这个问题的方法是在运输层使用协议端口号，即端口。将一个应用进程绑定到一个端口，只要把所传送的报文交到目的主机的某个端口，剩下的工作就由TCP或UDP来完成。<br>TCP/IP的运输层用一个16位（65535）的端口号来表示端口。也就是说，如果想实现应用进程之间的通信不仅要知道对方的IP地址，还要知道其对应的端口号。运输层的端口号分为以下两类：</p>
+<ol>
+<li><strong>服务器端使用的端口号</strong><br>1.1 熟知端口号（系统端口号） 0~1023<br>1.2 登记端口号 1024~49151</li>
+<li><strong>客户端使用的端口号</strong> 49152~65535，因为只在客户进程运行时才动态选择，通信结束后，刚才用的客户端口号就不复存在，因此也称为<strong>短暂端口号</strong>。</li>
+</ol>
+<h1 id="UDP"><a href="#UDP" class="headerlink" title="UDP"></a>UDP</h1><ul>
+<li><strong>UDP是无连接的</strong>，也就是说在发送数据前不需要建立连接，结束时也没有连接要释放，因此减少了开销和发送数据之前的时延。</li>
+<li><strong>UDP使用了尽最大努力交付</strong>，即不保证可靠交付，因此主机不需要维持复杂的连接状态表。</li>
+<li><strong>UDP是面向报文的</strong>。发送方的UDP对应用进程交下来的报文既不合并也不拆分，而是保留这些报文的边界，在添加首部后就向下交付给IP层。也就是说，UDP一次交付一个完整的报文。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/UDP.jpg" alt></li>
+<li><strong>UDP没有拥塞控制</strong>，因此网络出现的拥塞不会使源主机的发送速率降低，很多实时应用要求主机以恒定的速率发送数据，并且允许在网络发生拥塞时丢失一些数据，但不允许数据有太大的时延。</li>
+<li><strong>UDP支持一对一，一对多，多对一，多对多的交互通信</strong>。</li>
+<li><strong>UDP的首部开销小。只有8个字节</strong><br>用户数据报UDP有两个字段：<strong>数据字段和首部字段</strong>。首部字段很简答只有8个字节，由四个字段组成，每个字段的长度都是两个字节：</li>
+</ul>
+<ol>
+<li><strong>源端口</strong>：源端口号，在需要对方回信时选用。不需要时可以用全0表示。</li>
+<li><strong>目的端口</strong>：目的端口号。当运输层从IP层收到数据报时，根据首部中的目的端口，把UDP数据报通过相应的端口，上交至应用程序。</li>
+<li><strong>长度</strong>：UDP用户数据报的长度，其最小值是8（仅有首部）</li>
+<li><strong>检验和</strong>：检测UDP用户数据报在传输中是否有错，有错就丢弃。</li>
+</ol>
+<h1 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h1><ul>
+<li><strong>TCP是面向连接的运输层协议</strong>，也就是说，应用程序在使用TCP协议之前，必须先建立TCP连接。在传输数据完毕之后要释放建立的连接。</li>
+<li><strong>每一条TCP连接只能有两个端点</strong>，每一条TCP连接只能是点对点的。TCP连接的两个端口是套接字（IP地址拼接端口号就构成了套接字）。套接字的表示方法是在点分十进制的IP地址后面写上端口号，中间用冒号或逗号隔开。</li>
+<li><strong>TCP提供可靠交付的服务</strong>，通过TCP连接传输的数据，无差错，不丢失，不重复，并且按序到达。</li>
+<li><strong>TCP是全双工通信</strong>，允许通信双方在任何时候都能发送数据。</li>
+<li><strong>面向字节流</strong>，TCP中的流指的是流入到进程或从进程中流出的字节序列。也就是说，虽然应用程序和TCP的交互是一次一个数据块（大小不等），但TCP把应用程序交下来的数据仅仅看成是一连串的无结构的字节流。<h2 id="可靠传输的工作原理"><a href="#可靠传输的工作原理" class="headerlink" title="可靠传输的工作原理"></a>可靠传输的工作原理</h2>TCP发送的报文段是交给IP层传输的。但IP层只能尽最大努力交付，也就是说，TCP下面的网络所提供的是不可靠的传输。因此TCP必须采取一些措施来保证两个运输层之间的通信变得可靠。<h3 id="停止等待协议"><a href="#停止等待协议" class="headerlink" title="停止等待协议"></a>停止等待协议</h3>停止等待就是每发送完一个分组就停止发送，等待对方的确认。在收到确认后再发送下一个分组。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%85.jpg" alt><br>可靠传输协议是这样设计的：A只要超过了一段时间仍然没有收到确认，就认为刚才发送的分组丢失了，因而重传前面发送过的分组。这就是超时重传。要实现超时重传，应该在每发送完一个分组时设置一个超时计时器。如果在超时计时器到期之前收到了对方的确认，就撤销已设置的超时计时器。<br>需要注意：</li>
+</ul>
+<ol>
+<li>A在发送完一个分组后，必须暂时保留已发送的分组的副本。只有在收到相应的确认后才能清除暂时保留的分组副本。</li>
+<li>分组和确认分组都必须进行编号。这样才能明确是哪一个发出去的分组收到了确认，而哪一个分组还没有收到确认。</li>
+<li>超时计时器设置的重传时间应当比数据在分组传输的平均往返时间更长一些。因为有时候网络的拥塞会导致产生一些时延。<br>很容易想到这种方法的信道利用率并不高，信道在大多数时间都是空闲的。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E5%81%9C%E6%AD%A2%E7%AD%89%E5%BE%852.jpg" alt><br>为了提高传输效率，可以采用流水线传输。它的原理是：发送方可以连续发送多个分组，不必每发完一个分组就停顿下来等待对方的确认。这样可以使信道上一直有数据在传输。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%B5%81%E6%B0%B4%E7%BA%BF.jpg" alt><br>使用流水线传输就要考虑一下<strong>连续ARQ协议</strong>和<strong>滑动窗口协议</strong>。</li>
+</ol>
+<h3 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h3><p>发送方的应用程序把字节流写入TCP的发送缓存，接收方的应用进程从TCP的接收缓存中读取字节流。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3.png" alt><br>滑动窗口其实就是在发送缓存和接收缓存上的一个位置动态变化的区域，在（发送方）这个区域的后面是已经接收到确认的分组，前面是还没有发送的分组，区域之间的数据都可以发送，有发送了但是还没有收到确认的分组，也有可以发送但是还没有发送的分组。<br>对于接收方，区域后面是已经读取并且交付主机了的分组，所以该缓存可以不再保留这些数据，区域内的数据是允许接收的，如果接收方收到的数据不是按序到达的，那么它会发送按序数据中的最高序号给出确认。TCP通常对不按序到达的数据是先临时存放在接受窗口中，等到字节流中所缺少的字节收到后，再按序交付上层的应用进程。<br><strong>总结的说：</strong><br><strong>发送缓存中暂时存放的是：</strong><br><strong>1. 发送应用程序传送给TCP准备发送的数据。</strong><br><strong>2. TCP已经发送了但是还没有收到确认的数据。</strong></p>
+<p><strong>接受缓存中暂时存放的是：</strong><br><strong>1. 按序到达的，但是还没有被接收应用程序读取的数据。</strong><br><strong>2. 未按序到达的数据。</strong></p>
+<h2 id="TCP的流量控制"><a href="#TCP的流量控制" class="headerlink" title="TCP的流量控制"></a>TCP的流量控制</h2><p>一般来说，总是希望数据传输的快一些，但如果发送发太快，接收方就可能来不及接收，这就会造成数据的丢失。所谓流量控制就是<strong>让发送方的发送速率不要太快，要让接收方来的及接收</strong>。在建立连接时，接收方会告诉发送方它的接收窗口的大小，在传输过程中，也会在确认字段中含有其此时的接收窗口的大小，<strong>发送方的发送窗口不能超过接收方给出的接收窗口的数值</strong><br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6.png" alt><br>可以看到，接收方的主机B进行了三次流量控制。第一次把窗口减小到300，第二次减小到100，第三次减小到0，即不允许发送方再发送数据了。<br>此时其实还有一个问题，如果B可以接收数据了，它会发送一个数据告诉发送方，但是如果这个数据在网络传输中丢失了，A不知道这个数据的存在，B在等A给它发数据。此时陷入一种无限等待状态。<br>解决这个问题的方法是，TCP为每一个连接设有一个持续计时器。只要TCP连接的一方收到对方的零窗口通知，就启动该计时器。时间到了会给接收方发送一个零窗口探测报文段（携带1字节的数据），接收方在确认这个探测报文段时给出现在的窗口值。如果是零，重启计时器，不是零则僵局打破。<br><strong>TCP规定，即使设置为零窗口，也必须接收以下几种报文段：零窗口探测报文段，确认报文段和携带紧急数据的报文段。</strong></p>
+<h2 id="TCP的拥塞控制"><a href="#TCP的拥塞控制" class="headerlink" title="TCP的拥塞控制"></a>TCP的拥塞控制</h2><p>计算机网络中的带宽，交换结点中的缓存和处理机等都是网络中的资源，如果某段时间，对网络中的资源的需求超过了该资源所能提供的可用部分，网络的性能就要变坏，这种情况就叫拥塞。问题的实质是整个系统的各个部分不匹配。只有所有的部分都平衡了，问题才会得到解决。<br>拥塞控制与流量控制关系密切。<strong>所谓拥塞控制就是防止过多的数据流入到网络中，这样可以是网络中的路由器或链路不至于过载。拥塞控制所要做的都有一个前提，就是网络能够承受现有的网络负荷。拥塞控制是一个全局性的过程。相反，流量控制往往是指点对点的通信量的控制，是端到端的问题。流量控制锁要做的就是抑制发送端发送数据的速率，以便接收端来得及接收。</strong></p>
+<p>TCP进行拥塞控制的方法有4中：<strong>慢开始，拥塞避免，快重传和快恢复。</strong><br>发送方维持一个叫做拥塞窗口的状态变量。拥塞窗口的大小取决于网络的拥塞程度，并且动态的在变化。发送方让自己的发送窗口等于拥塞窗口。</p>
+<p>发送方控制拥塞窗口的原则是：<strong>只要网络没有出现拥塞，拥塞窗口就可以增大一些，只要出现拥塞，就必须把拥塞窗口减小一些。</strong>。</p>
+<blockquote>
+<p><em>慢开始的思路是这样的</em>：<br>当主机开始发送数据时，由于并不清楚网络的负荷情况，所以如果立即把大量的数据字节注入到网络，那么就有可能引起网络发生拥塞。较好的方法是先试探一下，即由小到大逐渐增大发送窗口，也就是说，从小到大逐渐增大拥塞窗口数值。</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%85%A2%E5%BC%80%E5%A7%8B.jpg" alt></p>
+<blockquote>
+<p><em>拥塞避免算法的思路是</em>：<br>让拥塞窗口cwnd缓慢的增大，即每经过一个往返时间就将发送方的拥塞窗口cwnd+1，而不是像慢开始那样成倍的增长。因此在拥塞避免阶段就有加法增大的特点，这表明在拥塞避免阶段，拥塞窗口cwnd按线性规律缓慢增长，比慢开始算法的拥塞窗口增长速率缓慢的多。</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D.jpg" alt></p>
+<p>采用快重传算法可以让发送方尽早直到发生了个别报文段的丢失。</p>
+<blockquote>
+<p>快重传算法首先要求接收方不要等到自己发送数据时才进行捎带确认，而是要立即发送确认，即使收到了失序的报文段也要立即发出对已收到的报文段的重复确认。快重传算法规定，只要一连收到3个重复确认，应该立即重传，这样就不会出现超时，发送方也就不会误以为出现了网络拥塞。</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/8096969d57a14fa10f9728d29122a00567051e43/%E7%BD%91%E7%BB%9C/%E5%BF%AB%E9%87%8D%E4%BC%A0.jpg" alt></p>
+<blockquote>
+<p>在图5-25的点④，发送方知道只是丢失了个别的报文段。于是不启动慢开始，而是执行快恢复算法。发送方调整门限为原来的一半，同时设置拥塞窗口不是从1开始，而是等于门限，并开始执行拥塞避免算法。</p>
+</blockquote>
+<hr>
+<p>参考资料：<br>《计算机网络——谢希仁 7th》</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/TCP/" rel="tag"># TCP</a>
+          
+            <a href="/tags/UDP/" rel="tag"># UDP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/21/春招——致我的处女面/" rel="next" title="春招——致我的处女面">
+                <i class="fa fa-chevron-left"></i> 春招——致我的处女面
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/03/27/总结——进程间通信/" rel="prev" title="总结——进程间通信">
+                总结——进程间通信 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#UDP"><span class="nav-number">2.</span> <span class="nav-text">UDP</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP"><span class="nav-number">3.</span> <span class="nav-text">TCP</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#可靠传输的工作原理"><span class="nav-number">3.1.</span> <span class="nav-text">可靠传输的工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#停止等待协议"><span class="nav-number">3.1.1.</span> <span class="nav-text">停止等待协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#滑动窗口"><span class="nav-number">3.1.2.</span> <span class="nav-text">滑动窗口</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP的流量控制"><span class="nav-number">3.2.</span> <span class="nav-text">TCP的流量控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP的拥塞控制"><span class="nav-number">3.3.</span> <span class="nav-text">TCP的拥塞控制</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

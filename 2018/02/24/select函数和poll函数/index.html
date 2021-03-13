@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="select,poll,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="IO多路复用select，poll，epoll都是linux下的IO多路复用的技术。所谓的IO多路复用就是指同时可以检测多个描述符，在指定时间内有描述符产生指定事件则返回，否则阻塞指定时间。">
+<meta name="keywords" content="select,poll">
+<meta property="og:type" content="article">
+<meta property="og:title" content="select函数和poll函数">
+<meta property="og:url" content="www.chenghuili.cn/2018/02/24/select函数和poll函数/index.html">
+<meta property="og:site_name" content="lichenghui&#39;s blog">
+<meta property="og:description" content="IO多路复用select，poll，epoll都是linux下的IO多路复用的技术。所谓的IO多路复用就是指同时可以检测多个描述符，在指定时间内有描述符产生指定事件则返回，否则阻塞指定时间。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/44789f281b6761190adbe10c69df7e8c1dddc9a6/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.jpg">
+<meta property="og:updated_time" content="2019-12-27T13:22:15.061Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="select函数和poll函数">
+<meta name="twitter:description" content="IO多路复用select，poll，epoll都是linux下的IO多路复用的技术。所谓的IO多路复用就是指同时可以检测多个描述符，在指定时间内有描述符产生指定事件则返回，否则阻塞指定时间。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chenghui-li/blog-photos/44789f281b6761190adbe10c69df7e8c1dddc9a6/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="www.chenghuili.cn/2018/02/24/select函数和poll函数/">
+
+
+
+
+
+  <title>select函数和poll函数 | lichenghui's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">lichenghui's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Pursue excellence, and success will follow!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="www.chenghuili.cn/2018/02/24/select函数和poll函数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="lichenghui">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/img/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lichenghui's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">select函数和poll函数</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-02-24T16:24:38+08:00">
+                2018-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/学习笔记/" itemprop="url" rel="index">
+                    <span itemprop="name">学习笔记</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/02/24/select函数和poll函数/" class="leancloud_visitors" data-flag-title="select函数和poll函数">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h1><p>select，poll，epoll都是linux下的IO多路复用的技术。所谓的IO多路复用就是指同时可以检测多个描述符，在指定时间内有描述符产生指定事件则返回，否则阻塞指定时间。<br><a id="more"></a></p>
+<h1 id="select函数"><a href="#select函数" class="headerlink" title="select函数"></a>select函数</h1><p>传给select的参数告知内核：</p>
+<ol>
+<li>所关心的描述符。</li>
+<li>对每个描述符所关心的事件（读，写，异常）</li>
+<li>愿意等待多长时间。</li>
+</ol>
+<p>从select返回，内核告诉我们：</p>
+<ol>
+<li>已准备好的描述符的总数量。</li>
+<li>对于读，写或异常这三个条件中的每一个，哪些描述符已经准备好。<br>使用这些消息，就可以调用相应的IO函数，并且可以确定这不会阻塞。<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"><span class="built_in">int</span> <span class="keyword">select</span>(<span class="built_in">int</span> maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,</span><br><span class="line">               <span class="keyword">const</span> struct timeval *timeout)<span class="comment">;</span></span><br><span class="line">//返回值：若有就绪描述符则为其数目，若超时则为<span class="number">0</span>，出错则为<span class="number">-1</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>timeout参数告知内核等待指定描述符中的任何一个就绪可花多长时间。其timeout结构用于指定这段时间的<strong>秒数和微秒数。</strong><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timeval</span>&#123;</span></span><br><span class="line">    <span class="keyword">long</span> tv_sec;    <span class="comment">//seconds</span></span><br><span class="line">    <span class="keyword">long</span> tv_usec;  <span class="comment">//microseconds</span></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>timeout为NULL表示永远等待下去，在有任何一个描述符准备好IO时才返回；</li>
+<li>为0表示不等待，检查描述符后立即返回（轮询）；</li>
+<li>为其他值表示要等待一段固定时间，如果不超过指定时间且有描述符就绪则返回，如果超时也返回。</li>
+</ul>
+<p>阻塞期间可以被信号中断（如果没有进行信号屏蔽的话）。<br>中间三个参数readset，writeset，exceptset是指向描述符集的指针。这三个参数说明了我们所关心的可读，可写，或处于异常条件的描述符集合。每个描述符都存储在一个fd_set数据类型中。它为每一个描述符保持一位。<br><img src="https://raw.githubusercontent.com/chenghui-li/blog-photos/44789f281b6761190adbe10c69df7e8c1dddc9a6/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8.jpg" alt><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_ZERO</span><span class="params">(fd_set *fdset)</span></span>;   <span class="comment">//置零fdset集合中的每一位</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_SET</span><span class="params">(<span class="keyword">int</span> fd,fd_set *fdset)</span></span>;   <span class="comment">//指定位（fd）置1</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_CLR</span><span class="params">(<span class="keyword">int</span> fd,fd_set *fdset)</span></span>;   <span class="comment">//指定位（fd）置0</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FD_ISSET</span><span class="params">(<span class="keyword">int</span> fd,fd_set *fdset)</span></span>;   <span class="comment">//判断指定位fd是否为1</span></span><br></pre></td></tr></table></figure></p>
+<p>使用这些接口可以对fd_set的数据类型进行相关操作。在声明了一个描述符集后，必须使用FD_ZERO将这个描述符集置为0，然后在其中设置关心的各个描述符的位。select返回时用FD_ISSET测试该集中的一个给定位是否仍处于打开状态。</p>
+<p>举个例子：<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fd_set rset;</span><br><span class="line">FD_ZERO(<span class="meta">&amp;rset);    <span class="comment">//初始化set集合，每一位置0</span></span></span><br><span class="line">FD_SET(<span class="number">1</span>,<span class="meta">&amp;rset);    <span class="comment">//描述符1对应位置1</span></span></span><br><span class="line">FD_SET(<span class="number">4</span>,<span class="meta">&amp;rset);    <span class="comment">//描述符4对应位置1</span></span></span><br><span class="line">FD_SET(<span class="number">5</span>,<span class="meta">&amp;rset);    <span class="comment">//描述符5对应位置1</span></span></span><br></pre></td></tr></table></figure></p>
+<p>maxfdp1参数指定待测试的描述符个数，它的值是待测试的最大描述符加1，描述符0,1,2…一直到maxfdp1-1均将被测试。<br>调用select函数时，在指定时间内无描述符就绪则阻塞，有任一描述符就绪就返回。</p>
+<ul>
+<li>返回-1表示出错，即可能被信号打断。</li>
+<li>返回0表示没有描述符准备就绪。<strong>此时，所有描述符集都会被置为0</strong></li>
+<li>返回正数表示已经就绪了的描述符个数。它是三个描述符集合中已准备好的描述符之和，所以如果同一描述符准备好读和写，在返回值中会对其计数两次。此时准备好的描述符依旧打开（置1），未准备好的置0。</li>
+</ul>
+<p><strong>描述符集内任何与未就绪描述符对应的位返回时均清成0，所以每次重新调用select函数时，都得再次把所有描述符集内所关心的位均置为1。</strong></p>
+<h1 id="pselect函数"><a href="#pselect函数" class="headerlink" title="pselect函数"></a>pselect函数</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">pselect</span><span class="params">(<span class="keyword">int</span> maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,</span></span></span><br><span class="line"><span class="function"><span class="params">                <span class="keyword">const</span> struct timespec *timeout,<span class="keyword">const</span> <span class="keyword">sigset_t</span> *sigmask)</span></span>;</span><br><span class="line"><span class="comment">//返回值：若有就绪描述符则为其数目，超时则为0，出错为-1</span></span><br></pre></td></tr></table></figure>
+<p>pselect和select的区别如下：</p>
+<ol>
+<li>pselect使用timespec结构，而不是timeval结构。<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timespec</span>&#123;</span></span><br><span class="line">    <span class="keyword">time_t</span> tv_sec;    <span class="comment">//seconds</span></span><br><span class="line">    <span class="keyword">long</span> tv_nsec;     <span class="comment">//nanoseconds</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>两个结构的区别在于第二个成员 tv_nsec，它指定纳秒数，而timeval结构的tv_usec指定微秒数。</p>
+<ol>
+<li>pselect增加了第六个参数：一个指向信号掩码的指针。该参数允许程序禁止递交某些信号，再测试由这些当前被禁止信号的信号处理函数设置的全局变量，然后调用pselect，告诉它重新设置信号掩码。看一个例子：<figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//使用pselect确保SIGINT信号不会丢失</span></span><br><span class="line">sigset_t <span class="keyword">new</span><span class="type">mask</span>,oldmask,zeromask;</span><br><span class="line">sigemptyset(&amp;zeromask);</span><br><span class="line">sigemptyset(&amp;<span class="keyword">new</span><span class="type">mask</span>);</span><br><span class="line">sigaddset(&amp;<span class="keyword">new</span><span class="type">mask</span>,SIGINT);</span><br><span class="line">sigprocmask(SIG_BLOCK,&amp;<span class="keyword">new</span><span class="type">mask</span>,&amp;oldmask);</span><br><span class="line"><span class="keyword">if</span>(intr_flag)</span><br><span class="line">    hadnle_intr();</span><br><span class="line"><span class="keyword">if</span>((nready = pselect(...,&amp;zeromask)) &lt; <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span>(errno == EINTR)&#123;</span><br><span class="line">        <span class="keyword">if</span>(intr_flag)</span><br><span class="line">            hadnle_intr();</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>在测试intr_flag之前，阻塞SIGINT。当pselect被调用时，它先以空集替代进程的信号掩码，再检查描述符，并可能进入睡眠。当pselect函数返回时，进程的信号掩码又被重置为调用pselect之前的值（即SIGINT被阻塞）。</p>
+<h1 id="poll函数"><a href="#poll函数" class="headerlink" title="poll函数"></a>poll函数</h1><p>poll提供的功能与select类似，不过在处理流设备时，它能够提供额外的信息。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">poll</span><span class="params">(struct pollfd *fdarray,<span class="keyword">unsigned</span> <span class="keyword">long</span> nfds,<span class="keyword">int</span> timeout)</span></span>;</span><br><span class="line"><span class="comment">//返回值：若有就绪描述符则为其数目，若超时为0，出错为-1</span></span><br></pre></td></tr></table></figure></p>
+<p>第一个参数是指向一个结构数组第一个元素的指针。每个数组元素都是一个pollfd结构，用于指定测试某个给定描述符fd的条件。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span>&#123;</span></span><br><span class="line">    <span class="keyword">int</span> fd;</span><br><span class="line">    <span class="keyword">short</span> events;</span><br><span class="line">    <span class="keyword">short</span> revents;</span><br></pre></td></tr></table></figure></p>
+<p>要测试的条件由events成员指定，函数在相应的revents成员中返回该描述符的状态。这两个成员中的每一个都由指定某个特定条件的一位或多位构成。<br>poll识别三类数据：普通、优先级带和高优先级。就TCP和UDP套接字而言，以下条件引起poll返回特定的revent。</p>
+<ul>
+<li>所有正规TCP数据和所有UDP数据都被认为是普通数据。</li>
+<li>TCP的外带数据被认为是优先级带数据。</li>
+<li>当TCP连接的读半部关闭时，也被认为是普通数据，随后的读操作将返回0。</li>
+<li>TCP连接存在错误既可以是普通数据，也可以是错误。</li>
+<li>在监听套接字上有新的连接可用既可以是普通数据，也可以是优先级数据。大多数实现视为普通数据。</li>
+<li>非阻塞式connect的完成被认为是使相应套接字可写。<br>结构数组中元素个数是由nfds参数指定。<br>timeout参数指定poll函数返回前等待多长时间。它是一个指定应等待毫秒数的正值。</li>
+</ul>
+<blockquote>
+<p>INFTIM——永远等待<br>0——立即返回，不阻塞进程<br>0——等待指定数目的毫秒数</p>
+</blockquote>
+<p>如果不关心某个特定描述符，可以把与它对应的pollfd结构的fd成员设置成一个负数。poll函数将忽略这样的pollfd结构的events成员，返回时将它的revents成员的值置为0。</p>
+<hr>
+<p>参考资料：<br>《UNIX网络编程 v1》（UNP）<br>《UNIX环境高级编程 3th》（APUE）</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/select/" rel="tag"># select</a>
+          
+            <a href="/tags/poll/" rel="tag"># poll</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/02/20/C-中的强制类型转换/" rel="next" title="C++中的强制类型转换">
+                <i class="fa fa-chevron-left"></i> C++中的强制类型转换
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/02/27/初识HTTP事务/" rel="prev" title="初识HTTP事务">
+                初识HTTP事务 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/img/me.jpg" alt="lichenghui">
+            
+              <p class="site-author-name" itemprop="name">lichenghui</p>
+              <p class="site-description motion-element" itemprop="description">stay foolish, stay hungry</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">84</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/chenghui-li" target="_blank" title="MyGitHub">
+                    
+                      <i class="fa fa-fw fa-globe"></i>MyGitHub</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#IO多路复用"><span class="nav-number">1.</span> <span class="nav-text">IO多路复用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#select函数"><span class="nav-number">2.</span> <span class="nav-text">select函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#pselect函数"><span class="nav-number">3.</span> <span class="nav-text">pselect函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#poll函数"><span class="nav-number">4.</span> <span class="nav-text">poll函数</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lichenghui</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("c9YJ73tLzVPzWp36mrElO2Y2-gzGzoHsz", "JTQv2LjxM8U9KnMKLcUfNYaU");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
